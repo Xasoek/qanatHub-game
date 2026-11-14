@@ -21,7 +21,8 @@ test("the standalone index.html plays offline on desktop and mobile", async (t) 
     ["mobile", { width: 360, height: 800 }],
   ]) {
     await t.test(name, async (scenario) => {
-      const context = await browser.newContext({ offline: true, viewport, hasTouch: name === "mobile" });
+      const touch = name === "mobile";
+      const context = await browser.newContext({ offline: true, viewport, hasTouch: touch });
       scenario.after(() => context.close());
       const requests = [];
       const errors = [];
@@ -30,35 +31,44 @@ test("the standalone index.html plays offline on desktop and mobile", async (t) 
       page.on("pageerror", (error) => errors.push(error.message));
       page.setDefaultTimeout(5_000);
       await page.goto(url);
+      const press = (control) => touch ? control.tap() : control.click();
 
       assert.equal(await page.locator("#game-title").textContent(), "One Sol to Rescue");
       await page.locator("#intro-art svg").waitFor();
-      await page.locator("#intro-skip").click();
-      await page.locator("#start").click();
+      await press(page.locator("#intro-skip"));
+      await press(page.locator("#start"));
       await page.locator("#base svg").waitFor();
       assert.match(await page.locator("#solar").textContent(), /NASA archive/);
 
-      await page.locator("#next").click();
+      await press(page.locator("#next"));
       const oxygen = await page.locator("#oxygen").textContent();
       const food = Number(await page.locator("#food").textContent());
       const energy = Number(await page.locator("#energy").textContent());
       const powerAir = page.locator('#system-air button[data-delta="1"]');
-      await powerAir.click();
-      await powerAir.click();
+      await press(powerAir);
+      await press(powerAir);
       assert.equal(Number(await page.locator("#energy").textContent()), energy - 2);
-      await page.locator("#end").click();
-      await page.locator("#advance").click();
+      await press(page.locator("#end"));
+      await press(page.locator("#advance"));
       assert.match(await page.locator("#sol").textContent(), /^Sol 2 of 30/);
       assert.equal(await page.locator("#oxygen").textContent(), oxygen);
       assert.ok(Number(await page.locator("#food").textContent()) < food);
 
-      await page.locator("#language").click();
+      await press(page.locator("#language"));
       assert.equal(await page.locator("#game-title").textContent(), "Один сол до помощи");
       assert.match(await page.locator("#sol").textContent(), /^Сол 2 из 30/);
       assert.match(await page.locator("#solar").textContent(), /Архив NASA/);
+      await press(page.locator("#next"));
+      const event = page.locator("#event");
+      await event.waitFor();
+      const cropChoice = event.getByRole("button", { name: "Редис" });
+      await cropChoice.waitFor();
       const fitsViewport = await page.evaluate(() =>
         document.documentElement.scrollWidth <= document.documentElement.clientWidth);
-      assert.ok(fitsViewport, "mission screen overflows the viewport");
+      assert.ok(fitsViewport, "crop choice overflows the viewport");
+      await press(cropChoice);
+      await event.waitFor({ state: "hidden" });
+      assert.match(await page.locator("#bip").textContent(), /редис/i);
       assert.deepEqual(errors, [], "the browser reported uncaught exceptions");
       assert.deepEqual(requests, [url], "the game requested resources outside index.html");
     });
