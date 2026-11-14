@@ -9,7 +9,7 @@
   "scripts": {
     "build": "node tools/build.js",
     "build:check": "node tools/build.js --check",
-    "test": "node tools/smoke.js",
+    "test": "node tools/smoke.js && node tools/data-check.js",
     "sim": "node tools/sim.js"
   },
   "devDependencies": {
