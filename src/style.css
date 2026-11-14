@@ -1,0 +1,81 @@
+:root {
+  color-scheme: dark;
+  font-family: system-ui, sans-serif;
+  background: #0d1b30;
+  color: #fff3e6;
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  box-sizing: border-box;
+  max-width: 48rem;
+  margin: auto;
+  padding: 1rem;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+h1 {
+  font-size: clamp(1.5rem, 5vw, 2.75rem);
+  margin: 0;
+}
+
+.resources {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.resources > div {
+  background: #172f56;
+  border-radius: 0.5rem;
+  padding: 0.65rem;
+}
+
+dd {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+svg {
+  display: block;
+  width: 100%;
+  border-radius: 0.5rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #7592bd;
+  border-radius: 0.5rem;
+  background: #172f56;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.58;
+  cursor: default;
+}
+
+button:focus-visible {
+  outline: 2px solid #ffc38d;
+  outline-offset: 3px;
+}
