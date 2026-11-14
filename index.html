@@ -689,17 +689,17 @@ button:focus-visible {
       return null;
     }
   }
-  function readCache(storage, now) {
+  function readCache(storage2, now) {
     try {
-      const cached = JSON.parse(storage?.getItem(LIVE.cacheKey) ?? "null");
+      const cached = JSON.parse(storage2?.getItem(LIVE.cacheKey) ?? "null");
       if (cached && Array.isArray(cached.flares) && cached.flares.length && now - cached.fetchedAt >= 0 && now - cached.fetchedAt < LIVE.cacheMs) return cached;
     } catch {
     }
     return null;
   }
-  function writeCache(storage, entry) {
+  function writeCache(storage2, entry) {
     try {
-      storage?.setItem(LIVE.cacheKey, JSON.stringify(entry));
+      storage2?.setItem(LIVE.cacheKey, JSON.stringify(entry));
     } catch {
     }
   }
@@ -737,17 +737,17 @@ button:focus-visible {
   async function loadSolarData({
     mode = "archive",
     fetchImpl = globalThis.fetch,
-    storage = defaultStorage(),
+    storage: storage2 = defaultStorage(),
     now = Date.now(),
     timeoutMs = LIVE.timeoutMs
   } = {}) {
     if (mode !== "live") return archiveResult(null);
-    const cached = readCache(storage, now);
+    const cached = readCache(storage2, now);
     if (cached) return { mode: "live", flares: structuredClone(cached.flares), asOf: cached.asOf, noticeKey: null };
     const flares = typeof fetchImpl === "function" ? await fetchWithDeadline(fetchImpl, now, timeoutMs) : null;
     if (!flares) return archiveResult("solar.liveUnavailable");
     const asOf = isoDate(now);
-    writeCache(storage, { fetchedAt: now, asOf, flares });
+    writeCache(storage2, { fetchedAt: now, asOf, flares });
     return { mode: "live", flares: structuredClone(flares), asOf, noticeKey: null };
   }
 
@@ -1011,9 +1011,9 @@ button:focus-visible {
   function weightedFlareClass() {
     const weights = Object.entries(CONFIG.events.flare.classWeights);
     let roll = random() * weights.reduce((sum, [, weight]) => sum + weight, 0);
-    for (const [flareClass, weight] of weights) {
+    for (const [flareClass2, weight] of weights) {
       roll -= weight;
-      if (roll < 0) return flareClass;
+      if (roll < 0) return flareClass2;
     }
     return weights.at(-1)[0];
   }
@@ -1061,14 +1061,14 @@ button:focus-visible {
         event.defaultChoice = "keep";
         break;
       case "flare": {
-        const { flareClass, flare } = nextFlare();
+        const { flareClass: flareClass2, flare } = nextFlare();
         const rule = rulesFor.flare;
-        Object.assign(event.data, { flareClass, flare, damage: rule.damage[flareClass] });
+        Object.assign(event.data, { flareClass: flareClass2, flare, damage: rule.damage[flareClass2] });
         event.choices = [
           { id: "shelter", cost: {}, blocks: ["farm", "repair"] },
           { id: "work", cost: {
-            dose: rule.dose[flareClass],
-            cubes: rule.doseCubes[flareClass] * rule.doseSols[flareClass]
+            dose: rule.dose[flareClass2],
+            cubes: rule.doseCubes[flareClass2] * rule.doseSols[flareClass2]
           } }
         ];
         event.defaultChoice = "shelter";
@@ -1169,20 +1169,20 @@ button:focus-visible {
         break;
       }
       case "flare": {
-        const { flareClass } = event.data;
+        const { flareClass: flareClass2 } = event.data;
         const rule = rulesFor.flare;
-        const damage = addDamage(rule.damage[flareClass]);
+        const damage = addDamage(rule.damage[flareClass2]);
         if (choice === "shelter") {
           block(["farm", "repair"], logEntry(key, { damage }));
         } else {
-          STATE.dose += rule.dose[flareClass];
-          const index = logEntry(key, { damage, dose: rule.dose[flareClass] });
+          STATE.dose += rule.dose[flareClass2];
+          const index = logEntry(key, { damage, dose: rule.dose[flareClass2] });
           addPending({
             kind: "dose",
             logIndex: index,
             triggerSol: STATE.sol + 1,
-            sols: rule.doseSols[flareClass],
-            cubes: rule.doseCubes[flareClass]
+            sols: rule.doseSols[flareClass2],
+            cubes: rule.doseCubes[flareClass2]
           });
         }
         break;
