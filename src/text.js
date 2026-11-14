@@ -1,6 +1,33 @@
+import { CONFIG } from "./config.js";
+
 // Story and interface strings share the same keys in both languages.
 export const TEXT = {
   en: {
+    story: {
+      systems: { air: "Scrubber", farm: "Greenhouse", repair: "Repairs", heat: "Heating", comms: "Radio", science: "Science" },
+      back: "Back",
+      task: "Today’s task",
+      done: "Task complete",
+      cost: "Cost: {value} · {unit}",
+      gain: "Gain: {value} · {unit}",
+      noEffect: "The effect was immediate.",
+      site: "Base site",
+      difficulty: "Difficulty",
+      cadet: "Cadet",
+      engineer: "Engineer",
+      start: "Start mission",
+      timer: "Seconds left: {n}",
+      units: {
+      oxygen: "oxygen",
+      food: "food",
+      cubes: "energy",
+      damage: "base damage (%)",
+      fatigue: "fatigue",
+      crop: "crop growth",
+      panels: "panels",
+      dose: "radiation dose",
+      },
+    },
     log: {
       air: { low: "Gave the scrubber too little power" },
       farm: { harvest: "Harvested the crop", skip: "Skipped work in the greenhouse" },
@@ -14,6 +41,8 @@ export const TEXT = {
       },
     },
     intro: {
+      art: { frame1: "Zarya base", frame2: "Dust storm warning", frame3: "Mark loses contact", frame4: "Tulpar lifts off", frame5: "Beep finds Mark" },
+      play: "Watch intro",
       f1: "Sol 18. The crew is at work at Zarya base.\nBotanist Mark Yermekov checks the far sensors.",
       f2: "Earth: “The storm will block the Sun.\nTulpar lifts off in 20 minutes!”",
       f3: "Mark can only see dust. His safety line snaps, and he slides into a ravine.\nHis helmet flashes: “NO SIGNAL.”",
@@ -25,6 +54,11 @@ export const TEXT = {
       progress: "Scene {n} of {total}"
     },
     bip: {
+      study: {
+      muscle: "NASA researchers studied how staying in bed affects muscles. On long missions, crews exercise to keep their muscles working.",
+      bone: "Researchers studied how spaceflight affects muscles and bones in mice. This helps scientists plan future studies.",
+      sleep: "NASA used wrist sensors to track how astronauts sleep. Getting enough rest helps crews stay alert.",
+      },
       training: {
         s1: "A sol is a day on Mars, about 40 minutes longer than an Earth day. Power the air scrubber to save oxygen.",
         s2: "Pick a crop for the greenhouse. Astronauts have already grown lettuce and radishes on the space station.",
@@ -232,6 +266,31 @@ export const TEXT = {
     },
   },
   ru: {
+    story: {
+      systems: { air: "Очиститель", farm: "Теплица", repair: "Ремонт", heat: "Обогрев", comms: "Связь", science: "Наука" },
+      back: "Назад",
+      task: "Задача сола",
+      done: "Задача выполнена",
+      cost: "Цена: {value} · {unit}",
+      gain: "Получено: {value} · {unit}",
+      noEffect: "Последствие наступило сразу.",
+      site: "Место базы",
+      difficulty: "Сложность",
+      cadet: "Курсант",
+      engineer: "Инженер",
+      start: "Начать миссию",
+      timer: "Осталось секунд: {n}",
+      units: {
+      oxygen: "кислород",
+      food: "еда",
+      cubes: "энергия",
+      damage: "урон базы (%)",
+      fatigue: "усталость",
+      crop: "рост рассады",
+      panels: "панели",
+      dose: "доза радиации",
+      },
+    },
     log: {
       air: { low: "Дал очистителю мало энергии" },
       farm: { harvest: "Собрал урожай", skip: "Пропустил работу в теплице" },
@@ -245,6 +304,8 @@ export const TEXT = {
       },
     },
     intro: {
+      art: { frame1: "База «Заря»", frame2: "Предупреждение о буре", frame3: "Марк теряет связь", frame4: "Взлёт «Тулпара»", frame5: "Бип находит Марка" },
+      play: "Смотреть интро",
       f1: "Сол 18. На базе «Заря» команда за работой.\nБотаник Марк Ермеков проверяет дальние датчики.",
       f2: "Земля: «Буря закроет Солнце.\n„Тулпар“ взлетает через 20 минут!»",
       f3: "Марк видит только пыль. Трос рвётся, и Марк скатывается в овраг.\nНа шлеме мигает: «НЕТ СИГНАЛА».",
@@ -256,6 +317,11 @@ export const TEXT = {
       progress: "Кадр {n} из {total}"
     },
     bip: {
+      study: {
+      muscle: "Учёные NASA изучали, что происходит с мышцами, когда люди долго лежат. В длительных полётах экипаж тренируется, чтобы мышцы оставались сильными.",
+      bone: "Учёные изучали, как полёт влияет на мышцы и кости мышей. Это помогает планировать новые исследования.",
+      sleep: "NASA следило за сном астронавтов с помощью датчиков на запястье. Хороший сон помогает экипажу сохранять внимание.",
+      },
       training: {
         s1: "Сол — это сутки на Марсе, примерно на 40 минут длиннее земных. Дай энергию очистителю, чтобы сберечь кислород.",
         s2: "Выбери культуру для теплицы. Салат и редис уже выращивали на космической станции.",
@@ -545,7 +611,7 @@ export const DAILY_TASKS = [
   { key: "task.reduceDamage", check: ({ before, after }) => after.damage < before.damage },
   { key: "task.restorePanel", check: ({ before, after }) =>
     after.panels.broken + after.panels.dusty < before.panels.broken + before.panels.dusty },
-  { key: "task.warmNight", check: ({ before, after, alloc }) => alloc.heat > 0 && after.fatigue <= before.fatigue },
+  { key: "task.warmNight", check: ({ before, after, alloc }) => alloc.heat >= CONFIG.siteRules[before.site].heatCubes && after.fatigue <= before.fatigue },
   { key: "task.lessFatigue", check: ({ before, after }) => after.fatigue < before.fatigue },
   { key: "task.contactEarth", check: ({ alloc }) => alloc.comms > 0 },
   { key: "task.collectScience", check: ({ alloc }) => alloc.science > 0 },
@@ -559,6 +625,9 @@ export const TRAINING_TASKS = [
 ];
 
 export const STORY_SOURCES = {
+  "bip.study.muscle": "https://osdr.nasa.gov/bio/repo/data/studies/OSD-195",
+  "bip.study.bone": "https://osdr.nasa.gov/bio/repo/data/studies/OSD-342",
+  "bip.study.sleep": "https://www.nasa.gov/missions/station/iss-research/wearable-tech-for-space-station-research/",
   "real.storm": "https://science.nasa.gov/resource/opportunitys-last-message/",
   "real.flare": "https://www.jpl.nasa.gov/news/nasa-watches-mars-light-up-during-epic-solar-storm/",
   "real.lettuce": "https://www.nasa.gov/wp-content/uploads/2023/03/veggie-fact-sheet-508.pdf",
