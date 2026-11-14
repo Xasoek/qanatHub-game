@@ -280,7 +280,8 @@ function nextFlare() {
   const letter = flare.classType[0];
   return {
     flareClass: "CMX".includes(letter) ? letter : "C",
-    flare: { beginTime: flare.beginTime ?? null, classType: flare.classType },
+    flare: { beginTime: flare.beginTime ?? null, classType: flare.classType,
+      flrID: flare.flrID ?? null, link: flare.link ?? null },
   };
 }
 

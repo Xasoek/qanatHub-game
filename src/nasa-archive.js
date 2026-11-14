@@ -15,7 +15,8 @@ export const ARCHIVE = {
       "sourceLocation": "N26E05",
       "activeRegionNum": 13663,
       "messageID": "20240503-AL-002",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30405/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30405/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30405/1"
     },
     {
       "flrID": "2024-05-04T06:02:00-FLR-001",
@@ -25,7 +26,8 @@ export const ARCHIVE = {
       "sourceLocation": "N26W09",
       "activeRegionNum": 13663,
       "messageID": "20240504-AL-002",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30426/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30426/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30426/1"
     },
     {
       "flrID": "2024-05-04T23:28:00-FLR-001",
@@ -35,7 +37,8 @@ export const ARCHIVE = {
       "sourceLocation": "N26W17",
       "activeRegionNum": 13663,
       "messageID": "20240505-AL-002",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30454/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30454/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30454/1"
     },
     {
       "flrID": "2024-05-05T01:15:00-FLR-001",
@@ -45,7 +48,8 @@ export const ARCHIVE = {
       "sourceLocation": "N26W20",
       "activeRegionNum": 13663,
       "messageID": "20240505-AL-003",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30455/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30455/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30455/1"
     },
     {
       "flrID": "2024-05-05T05:47:00-FLR-001",
@@ -55,7 +59,8 @@ export const ARCHIVE = {
       "sourceLocation": "N26W20",
       "activeRegionNum": 13663,
       "messageID": "20240505-AL-007",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30463/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30463/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30463/1"
     },
     {
       "flrID": "2024-05-05T09:53:00-FLR-001",
@@ -65,7 +70,8 @@ export const ARCHIVE = {
       "sourceLocation": "N26W22",
       "activeRegionNum": 13663,
       "messageID": "20240505-AL-008",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30464/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30464/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30464/1"
     },
     {
       "flrID": "2024-05-05T11:41:00-FLR-001",
@@ -75,7 +81,8 @@ export const ARCHIVE = {
       "sourceLocation": "N26W23",
       "activeRegionNum": 13663,
       "messageID": "20240505-AL-009",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30465/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30465/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30465/1"
     },
     {
       "flrID": "2024-05-06T05:38:00-FLR-001",
@@ -85,7 +92,8 @@ export const ARCHIVE = {
       "sourceLocation": "N26W35",
       "activeRegionNum": 13663,
       "messageID": "20240506-AL-002",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30490/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30490/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30490/1"
     },
     {
       "flrID": "2024-05-07T05:58:00-FLR-001",
@@ -95,7 +103,8 @@ export const ARCHIVE = {
       "sourceLocation": "N27W47",
       "activeRegionNum": 13663,
       "messageID": "20240507-AL-002",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30504/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30504/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30504/1"
     },
     {
       "flrID": "2024-05-07T16:21:00-FLR-001",
@@ -105,7 +114,8 @@ export const ARCHIVE = {
       "sourceLocation": "N25W56",
       "activeRegionNum": 13663,
       "messageID": "20240507-AL-004",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30534/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30534/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30534/1"
     },
     {
       "flrID": "2024-05-08T01:33:00-FLR-001",
@@ -115,7 +125,8 @@ export const ARCHIVE = {
       "sourceLocation": "N25W60",
       "activeRegionNum": 13663,
       "messageID": "20240508-AL-002",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30550/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30550/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30550/1"
     },
     {
       "flrID": "2024-05-08T04:37:00-FLR-001",
@@ -125,7 +136,8 @@ export const ARCHIVE = {
       "sourceLocation": "S22W10",
       "activeRegionNum": 13664,
       "messageID": "20240508-AL-006",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30558/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30558/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30558/1"
     },
     {
       "flrID": "2024-05-08T06:44:00-FLR-001",
@@ -135,7 +147,8 @@ export const ARCHIVE = {
       "sourceLocation": "S21W18",
       "activeRegionNum": 13664,
       "messageID": "20240508-AL-008",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30563/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30563/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30563/1"
     },
     {
       "flrID": "2024-05-08T11:26:00-FLR-001",
@@ -145,7 +158,8 @@ export const ARCHIVE = {
       "sourceLocation": "S20W11",
       "activeRegionNum": 13664,
       "messageID": "20240508-AL-007",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30560/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30560/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30560/1"
     },
     {
       "flrID": "2024-05-08T17:32:00-FLR-001",
@@ -155,7 +169,8 @@ export const ARCHIVE = {
       "sourceLocation": "S17W13",
       "activeRegionNum": 13664,
       "messageID": "20240508-AL-011",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30588/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30588/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30588/1"
     },
     {
       "flrID": "2024-05-08T21:00:00-FLR-001",
@@ -165,7 +180,8 @@ export const ARCHIVE = {
       "sourceLocation": "S20W17",
       "activeRegionNum": 13664,
       "messageID": "20240508-AL-013",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30602/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30602/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30602/1"
     },
     {
       "flrID": "2024-05-08T22:05:00-FLR-001",
@@ -175,7 +191,8 @@ export const ARCHIVE = {
       "sourceLocation": "S22W22",
       "activeRegionNum": 13664,
       "messageID": "20240509-AL-003",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30608/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30608/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30608/1"
     },
     {
       "flrID": "2024-05-09T08:45:00-FLR-001",
@@ -185,7 +202,8 @@ export const ARCHIVE = {
       "sourceLocation": "S20W25",
       "activeRegionNum": 13664,
       "messageID": "20240509-AL-002",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30607/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30607/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30607/1"
     },
     {
       "flrID": "2024-05-09T17:23:00-FLR-001",
@@ -195,7 +213,8 @@ export const ARCHIVE = {
       "sourceLocation": "S18W29",
       "activeRegionNum": 13664,
       "messageID": "20240509-AL-008",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30636/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30636/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30636/1"
     },
     {
       "flrID": "2024-05-10T06:27:00-FLR-001",
@@ -205,7 +224,8 @@ export const ARCHIVE = {
       "sourceLocation": "S18W37",
       "activeRegionNum": 13664,
       "messageID": "20240510-AL-002",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30668/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30668/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30668/1"
     },
     {
       "flrID": "2024-05-10T13:58:00-FLR-001",
@@ -215,7 +235,8 @@ export const ARCHIVE = {
       "sourceLocation": "S16W40",
       "activeRegionNum": 13664,
       "messageID": "20240510-AL-007",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30682/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30682/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30682/1"
     },
     {
       "flrID": "2024-05-11T01:10:00-FLR-001",
@@ -224,7 +245,8 @@ export const ARCHIVE = {
       "classType": "X5.8",
       "sourceLocation": "S17W47",
       "messageID": "20240511-AL-005",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30713/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30713/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30713/1"
     },
     {
       "flrID": "2024-05-11T11:15:00-FLR-001",
@@ -234,7 +256,8 @@ export const ARCHIVE = {
       "sourceLocation": "S19W60",
       "activeRegionNum": 13664,
       "messageID": "20240511-AL-011",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30724/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30724/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30724/1"
     },
     {
       "flrID": "2024-05-11T14:46:00-FLR-001",
@@ -244,7 +267,8 @@ export const ARCHIVE = {
       "sourceLocation": "S17W53",
       "activeRegionNum": 13664,
       "messageID": "20240511-AL-016",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30732/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30732/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30732/1"
     },
     {
       "flrID": "2024-05-12T16:11:00-FLR-001",
@@ -254,7 +278,8 @@ export const ARCHIVE = {
       "sourceLocation": "S21W75",
       "activeRegionNum": 13664,
       "messageID": "20240512-AL-003",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30762/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30762/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30762/1"
     },
     {
       "flrID": "2024-05-13T09:36:00-FLR-001",
@@ -264,7 +289,8 @@ export const ARCHIVE = {
       "sourceLocation": "S17W77",
       "activeRegionNum": 13664,
       "messageID": "20240513-AL-004",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30805/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30805/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30805/1"
     },
     {
       "flrID": "2024-05-14T02:03:00-FLR-001",
@@ -274,7 +300,8 @@ export const ARCHIVE = {
       "sourceLocation": "S19W89",
       "activeRegionNum": 13664,
       "messageID": "20240514-AL-002",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30834/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30834/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30834/1"
     },
     {
       "flrID": "2024-05-14T12:40:00-FLR-001",
@@ -284,7 +311,8 @@ export const ARCHIVE = {
       "sourceLocation": "S19W90",
       "activeRegionNum": 13664,
       "messageID": "20240514-AL-004",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30840/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30840/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30840/1"
     },
     {
       "flrID": "2024-05-14T16:46:00-FLR-001",
@@ -294,7 +322,8 @@ export const ARCHIVE = {
       "sourceLocation": "S19W90",
       "activeRegionNum": 13664,
       "messageID": "20240514-AL-007",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30851/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30851/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30851/1"
     },
     {
       "flrID": "2024-05-15T08:18:00-FLR-001",
@@ -304,7 +333,8 @@ export const ARCHIVE = {
       "sourceLocation": "S20W90",
       "activeRegionNum": 13664,
       "messageID": "20240515-AL-003",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30882/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30882/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30882/1"
     },
     {
       "flrID": "2024-05-15T14:20:00-FLR-001",
@@ -313,7 +343,8 @@ export const ARCHIVE = {
       "classType": "X2.9",
       "sourceLocation": "S12E90",
       "messageID": "20240515-AL-008",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30903/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30903/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30903/1"
     },
     {
       "flrID": "2024-05-17T20:33:00-FLR-001",
@@ -323,7 +354,8 @@ export const ARCHIVE = {
       "sourceLocation": "S12E67",
       "activeRegionNum": 13585,
       "messageID": "20240517-AL-007",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30995/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30995/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30995/1"
     },
     {
       "flrID": "2024-05-27T06:49:00-FLR-001",
@@ -332,7 +364,8 @@ export const ARCHIVE = {
       "classType": "X2.8",
       "sourceLocation": "S21E95",
       "messageID": "20240527-AL-002",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/31160/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/31160/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/31160/1"
     },
     {
       "flrID": "2024-05-29T14:11:00-FLR-001",
@@ -342,7 +375,8 @@ export const ARCHIVE = {
       "sourceLocation": "S23E70",
       "activeRegionNum": 13697,
       "messageID": "20240529-AL-002",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/31187/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/31187/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/31187/1"
     },
     {
       "flrID": "2024-05-29T18:32:00-FLR-001",
@@ -352,7 +386,8 @@ export const ARCHIVE = {
       "sourceLocation": "N27E10",
       "activeRegionNum": 13691,
       "messageID": "20240529-AL-004",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/31199/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/31199/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/31199/1"
     },
     {
       "flrID": "2024-05-31T21:52:00-FLR-001",
@@ -362,7 +397,8 @@ export const ARCHIVE = {
       "sourceLocation": "S17E34",
       "activeRegionNum": 13697,
       "messageID": "20240531-AL-002",
-      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/31250/1"
+      "messageURL": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/31250/1",
+      "link": "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/31250/1"
     }
   ]
 };

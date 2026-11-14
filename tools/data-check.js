@@ -50,6 +50,10 @@ assert.ok(NASA_ARCHIVE.length > 0, "the archive is empty; run tools/donki-archiv
 assert.match(ARCHIVE_INFO.endpoint, /^DONKI\//);
 assert.match(ARCHIVE_INFO.fetchedAt, /^\d{4}-\d{2}-\d{2}$/);
 assert.equal(new Set(NASA_ARCHIVE.map((flare) => flare.flrID)).size, NASA_ARCHIVE.length);
+// Each archived flare links to its own DONKI record (issue #12).
+for (const flare of NASA_ARCHIVE) {
+  assert.match(flare.link, /^https:\/\/(ccmc|kauai\.ccmc)\.gsfc\.nasa\.gov\/DONKI\//, flare.flrID);
+}
 
 // DONKI flare notifications become FLR-shaped records; other messages are ignored.
 const NOTE = {
@@ -65,7 +69,7 @@ const NOTE = {
 assert.deepEqual(parseFlareNotification(NOTE), {
   flrID: "2026-11-01T01:00:00-FLR-001", beginTime: "2026-11-01T01:00Z",
   peakTime: "2026-11-01T01:10Z", classType: "X1.6", sourceLocation: "S06W63",
-  activeRegionNum: 13654, messageID: NOTE.messageID, messageURL: NOTE.messageURL,
+  activeRegionNum: 13654, messageID: NOTE.messageID, messageURL: NOTE.messageURL, link: NOTE.messageURL,
 });
 const cme = { ...NOTE, messageBody: "## Message Type: Space Weather Notification - CME\n\nActivity ID: x-CME-001" };
 assert.equal(parseFlareNotification(cme), null);

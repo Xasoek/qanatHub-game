@@ -272,7 +272,17 @@ test("flares use the class of real NASA records", () => {
   const solarData = { mode: "archive", flares: [{ classType: "X1.1", beginTime: "2024-05-14T16:46Z" }] };
   const flare = playUntil("flare", { seed: 4, solarData });
   assert.equal(flare.data.flareClass, "X");
-  assert.deepEqual(flare.data.flare, { beginTime: "2024-05-14T16:46Z", classType: "X1.1" });
+  assert.deepEqual(flare.data.flare,
+    { beginTime: "2024-05-14T16:46Z", classType: "X1.1", flrID: null, link: null });
+});
+
+test("flare events keep the DONKI record id and link for the facts screen", () => {
+  const record = {
+    flrID: "2024-05-14T16:46:00-FLR-001", beginTime: "2024-05-14T16:46Z", classType: "X8.7",
+    link: "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/30851/1",
+  };
+  const flare = playUntil("flare", { seed: 4, solarData: { mode: "archive", flares: [record] } });
+  assert.deepEqual(flare.data.flare, record);
 });
 
 // ---------- saves and reports ----------
