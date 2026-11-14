@@ -703,35 +703,27 @@ button:focus-visible {
     } catch {
     }
   }
-  async function fetchLive(fetchImpl, now, signal) {
-    const params = `startDate=${isoDate(now - (LIVE.days - 1) * DAY_MS)}&endDate=${isoDate(now)}`;
-    for (const endpoint of LIVE.endpoints) {
-      if (signal.aborted) return null;
-      try {
-        const url = `${endpoint}${endpoint.includes("?") ? "&" : "?"}${params}`;
-        const response = await fetchImpl(url, { signal });
-        if (!response.ok) continue;
-        const body = await response.json();
-        const flares = extractFlares(body);
-        if (flares.length) return flares;
-      } catch {
-      }
-    }
-    return null;
+  async function fetchEndpoint(fetchImpl, endpoint, params, signal) {
+    const url = `${endpoint}${endpoint.includes("?") ? "&" : "?"}${params}`;
+    const response = await fetchImpl(url, { signal });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const flares = extractFlares(await response.json());
+    if (!flares.length) throw new Error("no flares");
+    return flares;
   }
   async function fetchWithDeadline(fetchImpl, now, timeoutMs) {
+    const params = `startDate=${isoDate(now - (LIVE.days - 1) * DAY_MS)}&endDate=${isoDate(now)}`;
     const controller = new AbortController();
     let timer;
     const deadline = new Promise((resolve) => {
-      timer = setTimeout(() => {
-        controller.abort();
-        resolve(null);
-      }, timeoutMs);
+      timer = setTimeout(() => resolve(null), timeoutMs);
     });
+    const first = Promise.any(LIVE.endpoints.map((endpoint) => (async () => fetchEndpoint(fetchImpl, endpoint, params, controller.signal))())).catch(() => null);
     try {
-      return await Promise.race([fetchLive(fetchImpl, now, controller.signal), deadline]);
+      return await Promise.race([first, deadline]);
     } finally {
       clearTimeout(timer);
+      controller.abort();
     }
   }
   async function loadSolarData({
