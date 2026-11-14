@@ -115,12 +115,19 @@ assert.ok(Date.now() - started < 1_000, "timeout must not wait for fetch");
 const noStorage = await loadSolarData({ mode: "live", storage: blocked, now: NOW, fetchImpl: reply([FLARE]) });
 assert.equal(noStorage.mode, "live");
 
-// Second endpoint is used when the first fails.
+// Another endpoint is used when the first fails.
 let calls = 0;
 const second = await loadSolarData({ mode: "live", storage: memoryStorage(), now: NOW,
   fetchImpl: async () => (++calls === 1 ? reply([], false)() : reply([FLARE])()) });
 assert.equal(second.mode, "live");
-assert.equal(calls, 2);
+assert.equal(calls, LIVE.endpoints.length);
+
+// A hanging first host (the DONKI site) must not block a fast answer from another one.
+const hangFirst = Date.now();
+const notBlocked = await loadSolarData({ mode: "live", storage: memoryStorage(), now: NOW, timeoutMs: 2_000,
+  fetchImpl: (url) => (url.startsWith(LIVE.endpoints[0]) ? never() : reply([FLARE])()) });
+assert.equal(notBlocked.mode, "live");
+assert.ok(Date.now() - hangFirst < 1_000, "a hanging host blocked the live answer");
 
 // Notifications work as the last live endpoint.
 const viaNotes = await loadSolarData({ mode: "live", storage: memoryStorage(), now: NOW,
