@@ -2,8 +2,23 @@
 import assert from "node:assert/strict";
 import {
   ARCHIVE_INFO, LIVE, NASA_ARCHIVE, extractFlares, flareClass, flaresToSols, loadSolarData,
-  parseFlareNotification,
+  FACTS, SITES, SOURCES, STUDIES, parseFlareNotification,
 } from "../src/data.js";
+
+// Every fact, site and study points to a listed https source.
+const sourceIds = new Set(SOURCES.map((source) => source.id));
+assert.equal(sourceIds.size, SOURCES.length);
+for (const source of SOURCES) assert.match(source.url, /^https:\/\//, source.id);
+for (const fact of FACTS) {
+  assert.ok(sourceIds.has(fact.sourceId), `${fact.id} has no source`);
+  assert.ok(fact.quote.length > 10, `${fact.id} has no quote`);
+}
+assert.equal(new Set(FACTS.map((fact) => fact.id)).size, FACTS.length);
+assert.deepEqual(Object.keys(SITES).sort(), ["arcadia", "gale", "jezero"]);
+for (const site of Object.values(SITES)) {
+  assert.ok(sourceIds.has(site.sourceId) && site.lat >= -90 && site.lat <= 90 && site.lon >= 0 && site.lon < 360);
+}
+for (const study of STUDIES) assert.match(study.url, /^https:\/\/osdr\.nasa\.gov\//);
 
 const NOW = Date.parse("2026-11-14T10:00:00Z");
 const FLARE = { flrID: "2026-11-01T01:00:00-FLR-001", beginTime: "2026-11-01T01:00Z",

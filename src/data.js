@@ -15,8 +15,96 @@ export const ARCHIVE_INFO = Object.freeze({
  */
 export const NASA_ARCHIVE = ARCHIVE.flares;
 
+/**
+ * Every source the game cites. URLs were opened on 2026-11-14; the DONKI site itself
+ * did not answer from our network then, its data came through api.nasa.gov.
+ * usedFor names the game feature; facts below point here by id.
+ */
 export const SOURCES = [
-  { id: "donki", title: "NASA DONKI", url: "https://kauai.ccmc.gsfc.nasa.gov/DONKI/" },
+  { id: "donki", org: "NASA CCMC", title: "DONKI: Space Weather Database Of Notifications, Knowledge, Information",
+    url: "https://kauai.ccmc.gsfc.nasa.gov/DONKI/", usedFor: "solar flares (archive and Today's Sun)" },
+  { id: "nasaApi", org: "NASA", title: "NASA Open APIs", url: "https://api.nasa.gov/",
+    usedFor: "access to DONKI" },
+  { id: "marsFactSheet", org: "NASA NSSDC", title: "Mars Fact Sheet",
+    url: "https://nssdc.gsfc.nasa.gov/planetary/factsheet/marsfact.html", usedFor: "base sensors: temperature, pressure, sol length" },
+  { id: "marsFacts", org: "NASA Science", title: "Mars: Facts", url: "https://science.nasa.gov/mars/facts/",
+    usedFor: "what a sol is" },
+  { id: "radStorm2024", org: "NASA", title: "NASA Watches Mars Light Up During Epic Solar Storm",
+    url: "https://www.nasa.gov/solar-system/planets/mars/nasa-watches-mars-light-up-during-epic-solar-storm/",
+    usedFor: "It was real: the May 2024 flare and the Curiosity RAD dose" },
+  { id: "opportunity", org: "NASA Science", title: "Mars Exploration Rover: Opportunity",
+    url: "https://science.nasa.gov/mission/mer-opportunity/", usedFor: "It was real: the 2018 dust storm" },
+  { id: "veggie", org: "NASA", title: "Veggie fact sheet",
+    url: "https://www.nasa.gov/wp-content/uploads/2019/04/veggie_fact_sheet_508.pdf", usedFor: "greenhouse: lettuce" },
+  { id: "aphRadish", org: "NASA", title: "Astronauts Harvest Radish Crop on International Space Station",
+    url: "https://www.nasa.gov/missions/station/astronauts-harvest-radish-crop-on-international-space-station/",
+    usedFor: "greenhouse: radish" },
+  { id: "cipPotato", org: "International Potato Center (CIP)", title: "Potatoes on Mars",
+    url: "https://cipotato.org/pressreleases/potatoes-on-mars/", usedFor: "greenhouse: potato" },
+  { id: "moxie", org: "NASA", title: "NASA's Oxygen-Generating Experiment MOXIE Completes Mars Mission",
+    url: "https://www.nasa.gov/missions/mars-2020-perseverance/nasas-oxygen-generating-experiment-moxie-completes-mars-mission/",
+    usedFor: "site choice: Jezero" },
+  { id: "gazetteer", org: "USGS / IAU", title: "Gazetteer of Planetary Nomenclature",
+    url: "https://planetarynames.wr.usgs.gov/", usedFor: "site choice: coordinates" },
+  { id: "marsTrek", org: "NASA", title: "Mars Trek", url: "https://trek.nasa.gov/mars/",
+    usedFor: "site choice: map" },
+  { id: "osdr", org: "NASA", title: "Open Science Data Repository (OSDR)", url: "https://osdr.nasa.gov/bio/repo/",
+    usedFor: "Bip's lines about muscles and bones" },
+];
+
+/**
+ * Base sites. Coordinates: IAU/USGS gazetteer, planetocentric latitude, east longitude 0–360.
+ * Mars Trek elevation profiles are still to be added.
+ */
+export const SITES = {
+  gale: { name: "Gale", lat: -5.44, lon: 137.7, diameterKm: 155.3,
+    url: "https://planetarynames.wr.usgs.gov/Feature/2071", sourceId: "gazetteer" },
+  jezero: { name: "Jezero", lat: 18.41, lon: 77.69, diameterKm: 47.52,
+    url: "https://planetarynames.wr.usgs.gov/Feature/14300", sourceId: "gazetteer" },
+  arcadia: { name: "Arcadia Planitia", lat: 46.66, lon: 192, diameterKm: 2200,
+    url: "https://planetarynames.wr.usgs.gov/Feature/348", sourceId: "gazetteer" },
+};
+
+/**
+ * Verified facts. `quote` is copied from the source page; role 4 writes the player's text.
+ * Numbers the game uses for real-world captions sit in `value`.
+ */
+export const FACTS = [
+  { id: "solLength", sourceId: "marsFactSheet", value: { hours: 24.6597 },
+    quote: "Length of day (hrs) 24.6597" },
+  { id: "sol", sourceId: "marsFacts",
+    quote: "Martian days are called sols — short for \"solar day.\"" },
+  { id: "surfacePressure", sourceId: "marsFactSheet", value: { mb: 6.36, minMb: 4.0, maxMb: 8.7 },
+    quote: "Surface pressure: 6.36 mb at mean radius (variable from 4.0 to 8.7 mb depending on season)" },
+  { id: "temperature", sourceId: "marsFactSheet", value: { averageC: -59, minC: -89, maxC: -31 },
+    quote: "Average temperature: ~214 K (-59 C) Diurnal temperature range: 184 K to 242 K (-89 to -31 C)" },
+  { id: "flare2024", sourceId: "radStorm2024", value: { date: "2024-05-20", classType: "X12" },
+    quote: "The biggest event occurred on May 20 with a solar flare later estimated to be an X12" },
+  { id: "radDose2024", sourceId: "radStorm2024", value: { microgray: 8100, chestXrays: 30 },
+    quote: "If astronauts had been standing next to NASA’s Curiosity Mars rover at the time, they would have received a radiation dose of 8,100 micrograys — equivalent to 30 chest X-rays." },
+  { id: "opportunityStorm", sourceId: "opportunity",
+    value: { lastContact: "2018-06-10", endOfMission: "2019-02-13" },
+    quote: "June 10, 2018: Last communication with Opportunity Feb. 13, 2019: NASA declares End of Mission" },
+  { id: "opportunityPanels", sourceId: "opportunity",
+    quote: "Opportunity went quiet during a historic Mars-wide dust storm in 2018 that reduced the energy available to the rover’s solar panels." },
+  { id: "lettuce", sourceId: "veggie", value: { days: 33, planted: "2014-05-08" },
+    quote: "Astronaut Steve Swanson started the first crop of lettuce on May 8, 2014, and it grew for 33 days." },
+  { id: "radish", sourceId: "aphRadish", value: { days: 27, harvested: "2020-11-30" },
+    quote: "NASA selected radishes because they are well understood by scientists and reach maturity in just 27 days." },
+  { id: "potato", sourceId: "cipPotato",
+    quote: "The experiment, led by the International Potato Center (CIP) and NASA, is a major step towards building a controlled dome on Mars capable of farming the invaluable crop" },
+  { id: "moxie", sourceId: "moxie", value: { grams: 122 },
+    quote: "Since Perseverance landed on Mars in 2021, MOXIE has generated a total of 122 grams of oxygen – about what a small dog breathes in 10 hours." },
+];
+
+/** OSDR studies for Bip's lines. Only the study titles are claimed. */
+export const STUDIES = [
+  { id: "OSD-195", topic: "muscle", title: "Effects of 21 days of bedrest on human skeletal muscle gene expression",
+    url: "https://osdr.nasa.gov/bio/repo/data/studies/OSD-195" },
+  { id: "OSD-342", topic: "bone", title: "Targeting myostatin/activin A protects against skeletal muscle and bone loss during spaceflight [plasma proteomics]",
+    url: "https://osdr.nasa.gov/bio/repo/data/studies/OSD-342" },
+  { id: "OSD-32", topic: "brain", title: "Effect of microgravity on brain gene expression in mice",
+    url: "https://osdr.nasa.gov/bio/repo/data/studies/OSD-32" },
 ];
 
 /** Live-mode settings. The public DEMO_KEY is the only key allowed in the repository. */
