@@ -9,7 +9,10 @@ export const ARCHIVE_INFO = Object.freeze({
   fetchedAt: ARCHIVE.fetchedAt,
 });
 
-/** Raw DONKI FLR records for 1–31 May 2024, original field names and values. */
+/**
+ * DONKI flare records for 1–31 May 2024 with DONKI field names and unchanged values.
+ * ARCHIVE_INFO.endpoint says which DONKI endpoint they came from.
+ */
 export const NASA_ARCHIVE = ARCHIVE.flares;
 
 export const SOURCES = [
@@ -25,13 +28,15 @@ export const LIVE = Object.freeze({
   endpoints: [
     "https://kauai.ccmc.gsfc.nasa.gov/DONKI/WS/get/FLR",
     "https://api.nasa.gov/DONKI/FLR?api_key=DEMO_KEY",
+    // FLR answers 404 on api.nasa.gov since 2026-11; flare notifications carry the same fields.
+    "https://api.nasa.gov/DONKI/notifications?type=FLR&api_key=DEMO_KEY",
   ],
 });
 
-/** DONKI FLR fields the game keeps. Values are copied as they are. */
+/** DONKI fields the game keeps. Values are copied as they are. */
 export const FLARE_FIELDS = Object.freeze([
   "flrID", "beginTime", "peakTime", "endTime", "classType",
-  "sourceLocation", "activeRegionNum", "link",
+  "sourceLocation", "activeRegionNum", "link", "messageID", "messageURL",
 ]);
 
 const DAY_MS = 24 * 60 * 60 * 1_000;
@@ -39,6 +44,48 @@ const DAY_MS = 24 * 60 * 60 * 1_000;
 export function pickFlare(record) {
   return Object.fromEntries(FLARE_FIELDS.filter((field) => Object.hasOwn(record, field))
     .map((field) => [field, record[field]]));
+}
+
+const NOTE_LINES = {
+  flrID: /^Activity ID:\s*(\S+?-FLR-\d+)\.?\s*$/m,
+  beginTime: /^Flare start time:\s*(\S+?)\.?\s*$/m,
+  peakTime: /^Flare peak time:\s*(\S+?)\.?\s*$/m,
+  endTime: /^Flare end time:\s*(\S+?)\.?\s*$/m,
+  classType: /^Flare intensity:\s*([A-Z][\d.]+) class\.?\s*$/m,
+};
+
+/**
+ * Reads one DONKI flare notification ("Space Weather Notification - X1.6 Flare").
+ * Copies the values as written by DONKI; returns null for other messages.
+ */
+export function parseFlareNotification(message) {
+  const body = message?.messageBody;
+  if (typeof body !== "string" || !/^## Message Type: Space Weather Notification - [A-Z][\d.]+ Flare\s*$/m.test(body)) return null;
+  const flare = {};
+  for (const [field, pattern] of Object.entries(NOTE_LINES)) {
+    const match = body.match(pattern);
+    if (match) flare[field] = match[1];
+  }
+  const region = body.match(/^Source region:\s*(\S+)(?:\s*\(Active Region (\d+)\))?/m);
+  if (region) {
+    flare.sourceLocation = region[1];
+    if (region[2]) flare.activeRegionNum = Number(region[2]);
+  }
+  if (message.messageID) flare.messageID = message.messageID;
+  if (message.messageURL) flare.messageURL = message.messageURL;
+  return flare.flrID && flare.beginTime && flareClass(flare.classType) ? flare : null;
+}
+
+/** Turns a DONKI FLR array or a notifications array into flare records, one per flrID. */
+export function extractFlares(body) {
+  if (!Array.isArray(body)) return [];
+  const flares = new Map();
+  for (const record of body) {
+    const flare = record && "messageBody" in record ? parseFlareNotification(record)
+      : record && flareClass(record.classType) && record.beginTime ? pickFlare(record) : null;
+    if (flare) flares.set(flare.flrID ?? `${flare.beginTime}/${flare.classType}`, flare);
+  }
+  return [...flares.values()].sort((a, b) => a.beginTime.localeCompare(b.beginTime));
 }
 
 /** "M1.4" → "M". Returns null when the class is missing or not A/B/C/M/X. */
@@ -116,10 +163,7 @@ async function fetchLive(fetchImpl, now, signal) {
       const response = await fetchImpl(url, { signal });
       if (!response.ok) continue;
       const body = await response.json();
-      const flares = Array.isArray(body)
-        ? body.filter((record) => record && flareClass(record.classType) && record.beginTime)
-          .map(pickFlare)
-        : [];
+      const flares = extractFlares(body);
       if (flares.length) return flares;
     } catch { /* Offline, CORS or a bad body: try the next endpoint. */ }
   }

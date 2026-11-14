@@ -1,7 +1,8 @@
 // Role 3 checks for src/data.js: archive, live mode, cache, timeout, errors and empty answers.
 import assert from "node:assert/strict";
 import {
-  ARCHIVE_INFO, LIVE, NASA_ARCHIVE, flareClass, flaresToSols, loadSolarData,
+  ARCHIVE_INFO, LIVE, NASA_ARCHIVE, extractFlares, flareClass, flaresToSols, loadSolarData,
+  parseFlareNotification,
 } from "../src/data.js";
 
 const NOW = Date.parse("2026-11-14T10:00:00Z");
@@ -24,6 +25,32 @@ for (const flare of NASA_ARCHIVE) {
   assert.ok(flare.beginTime >= ARCHIVE_INFO.startDate && flare.beginTime <= `${ARCHIVE_INFO.endDate}T23:59Z`);
   assert.ok(flareClass(flare.classType), `bad classType ${flare.classType}`);
 }
+
+// The bundled archive is real data for May 2024 with a source.
+assert.ok(NASA_ARCHIVE.length > 0, "the archive is empty; run tools/donki-archive.js");
+assert.match(ARCHIVE_INFO.endpoint, /^DONKI\//);
+assert.match(ARCHIVE_INFO.fetchedAt, /^\d{4}-\d{2}-\d{2}$/);
+assert.equal(new Set(NASA_ARCHIVE.map((flare) => flare.flrID)).size, NASA_ARCHIVE.length);
+
+// DONKI flare notifications become FLR-shaped records; other messages are ignored.
+const NOTE = {
+  messageType: "FLR", messageID: "20260101-AL-001",
+  messageURL: "https://ccmc.gsfc.nasa.gov/DONKI/view/Alert/1/1",
+  messageBody: [
+    "## Message Type: Space Weather Notification - X1.6 Flare", "## Summary:",
+    "Flare start time: 2026-11-01T01:00Z. ", "Flare peak time: 2026-11-01T01:10Z.",
+    "Flare intensity: X1.6 class.", "Source region: S06W63 (Active Region 13654) (based on SDO imagery).",
+    "Activity ID: 2026-11-01T01:00:00-FLR-001.",
+  ].join("\n\n"),
+};
+assert.deepEqual(parseFlareNotification(NOTE), {
+  flrID: "2026-11-01T01:00:00-FLR-001", beginTime: "2026-11-01T01:00Z",
+  peakTime: "2026-11-01T01:10Z", classType: "X1.6", sourceLocation: "S06W63",
+  activeRegionNum: 13654, messageID: NOTE.messageID, messageURL: NOTE.messageURL,
+});
+const cme = { ...NOTE, messageBody: "## Message Type: Space Weather Notification - CME\n\nActivity ID: x-CME-001" };
+assert.equal(parseFlareNotification(cme), null);
+assert.equal(extractFlares([NOTE, NOTE, cme]).length, 1);
 
 // Live success: last 30 days requested, fields kept, cached for a day.
 const storage = memoryStorage();
@@ -75,6 +102,12 @@ const second = await loadSolarData({ mode: "live", storage: memoryStorage(), now
   fetchImpl: async () => (++calls === 1 ? reply([], false)() : reply([FLARE])()) });
 assert.equal(second.mode, "live");
 assert.equal(calls, 2);
+
+// Notifications work as the last live endpoint.
+const viaNotes = await loadSolarData({ mode: "live", storage: memoryStorage(), now: NOW,
+  fetchImpl: async (url) => (url.includes("notifications") ? reply([NOTE, cme])() : reply([], false)()) });
+assert.equal(viaNotes.mode, "live");
+assert.equal(viaNotes.flares[0].classType, "X1.6");
 
 // Classes and sols.
 assert.equal(flareClass("X8.7"), "X");
