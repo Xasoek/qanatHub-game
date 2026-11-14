@@ -1,7 +1,12 @@
 node_modules/
 coverage/
+.playwright/
+playwright-report/
+test-results/
 .DS_Store
 .env
 .env.*
+*.pem
+*.key
 *.local
 npm-debug.log*
