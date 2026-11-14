@@ -79,3 +79,41 @@ button:focus-visible {
   outline: 2px solid #ffc38d;
   outline-offset: 3px;
 }
+
+nav {
+  margin: 1rem 0;
+}
+
+#intro-caption {
+  white-space: pre-line;
+}
+
+#systems, #event, #ending {
+  margin: 1rem 0;
+}
+
+#systems > div {
+  flex: 1 1 10rem;
+}
+
+#systems span {
+  display: block;
+}
+
+#systems button + button {
+  margin-inline-start: 0.25rem;
+}
+
+#setup-screen label {
+  display: block;
+  margin: 0.75rem 0;
+}
+
+#setup-screen select {
+  min-height: 44px;
+  font: inherit;
+}
+
+#reading-copy a {
+  color: #abd0ff;
+}
