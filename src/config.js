@@ -97,6 +97,23 @@ export const CONFIG = {
   },
   lowReserveSols: 3, // autopause when oxygen or food drops below this
 
+  // Presentation mode (TZ 3.2): start from an act with ready reserves at x4.
+  // Acts 2 and 3 add a showcase storm and a strong flare right after the start.
+  // Act 3 reaches the ending in about 5 minutes. With careful play the simulator
+  // reaches the rescue in ~100% of act 3 demos on Gale and Arcadia, ~30% on Jezero
+  // (double damage), so demo on Gale. Act 2 plays like the normal game (~50%).
+  presentation: {
+    speed: 4,
+    stormAfter: 1, // sols after the start
+    flareAfter: 2,
+    flareClass: "X", // used when the NASA data has no X flare
+    acts: {
+      1: { sol: 1, showcase: false },
+      2: { sol: 11, oxygen: 13, food: 18, damage: 0, crop: { type: "radish", progress: 2 }, showcase: true },
+      3: { sol: 21, oxygen: 9, food: 12, damage: 0, crop: { type: "potato", progress: 4 }, showcase: true },
+    },
+  },
+
   // Weights that rank decisions for the end report chains.
   costWeights: { oxygen: 3, food: 2, damage: 0.3, cubes: 1, fatigue: 1, crop: 1, panels: 2, dose: 0.3 },
 

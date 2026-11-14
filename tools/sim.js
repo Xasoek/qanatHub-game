@@ -106,9 +106,9 @@ function resolveAll(player, seed) {
 }
 
 /** Plays one mission to the end and returns the engine's end report. */
-export function playMission({ strategy = "smart", seed = 0, site, difficulty } = {}) {
+export function playMission({ strategy = "smart", seed = 0, site, difficulty, presentation } = {}) {
   const player = STRATEGIES[strategy](seed);
-  newGame({ seed, site, difficulty });
+  newGame({ seed, site, difficulty, presentation });
   for (let step = 0; STATE.status === "playing"; step++) {
     if (step > MAX_STEPS) throw new Error(`Mission did not finish (seed ${seed})`);
     if (STATE.phase !== "day") skipToDecision();
@@ -128,11 +128,11 @@ export function runStarterMission(seed = 0) {
   return playMission({ strategy: "smart", seed });
 }
 
-export function runBatch({ count, strategy, difficulty = "engineer", site }) {
+export function runBatch({ count, strategy, difficulty = "engineer", site, presentation }) {
   const result = { wins: 0, causes: { oxygen: 0, food: 0, damage: 0 }, solSum: 0 };
   for (let seed = 0; seed < count; seed++) {
     const missionSite = site ?? CONFIG.sites[seed % CONFIG.sites.length];
-    const report = playMission({ strategy, seed, site: missionSite, difficulty });
+    const report = playMission({ strategy, seed, site: missionSite, difficulty, presentation });
     if (report.status === "rescued") result.wins += 1;
     else {
       result.solSum += report.sol;
@@ -163,4 +163,21 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   }
   console.log(`${count} missions per row. Target for engineer: smart 40-60%, random below 10%.`);
   console.table(rows);
+
+  // Presentation mode: how often the demo reaches the rescue and how long it runs at x4.
+  const { presentation } = CONFIG;
+  const solMinutes = Object.values(CONFIG.phasesMs).reduce((sum, ms) => sum + ms, 0) / 60_000;
+  const demo = {};
+  for (const act of Object.keys(presentation.acts)) {
+    const sols = CONFIG.missionSols - presentation.acts[act].sol + 1;
+    for (const strategy of Object.keys(STRATEGIES)) {
+      const { wins } = runBatch({ count, strategy, presentation: { act: Number(act) } });
+      demo[`act ${act} · ${strategy}`] = {
+        "win %": Math.round((wins / count) * 1000) / 10,
+        "minutes at x4 to rescue": Math.round((sols * solMinutes / presentation.speed) * 10) / 10,
+      };
+    }
+  }
+  console.log("Presentation mode (engineer, all sites). Decision time is not included.");
+  console.table(demo);
 }

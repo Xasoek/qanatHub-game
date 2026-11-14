@@ -113,13 +113,30 @@ function buildSchedule() {
   return schedule;
 }
 
+// Presentation mode: a storm and a strong flare right after the start.
+function addShowcaseEvents() {
+  const { stormAfter, flareAfter } = CONFIG.presentation;
+  meta.schedule[STATE.sol + stormAfter] = "storm";
+  meta.schedule[STATE.sol + flareAfter] = "flare";
+  meta.showcaseFlareSol = STATE.sol + flareAfter;
+}
+
+/**
+ * Starts a mission. `presentation: {act: 1|2|3}` starts that act with ready
+ * reserves at x4 and never touches the save. Acts 2 and 3 open with a storm and a flare.
+ */
 export function newGame({ site = CONFIG.defaults.site, difficulty = CONFIG.defaults.difficulty,
-  seed = CONFIG.defaults.seed, solarData } = {}) {
+  seed = CONFIG.defaults.seed, solarData, presentation = null } = {}) {
   if (!CONFIG.sites.includes(site)) throw new RangeError(`Unknown site: ${site}`);
   if (!Object.hasOwn(CONFIG.difficulties, difficulty)) {
     throw new RangeError(`Unknown difficulty: ${difficulty}`);
   }
   if (!Number.isFinite(seed)) throw new RangeError("seed must be a finite number");
+  const act = presentation ? presentation.act ?? 3 : null;
+  if (presentation && !Object.hasOwn(CONFIG.presentation.acts, act)) {
+    throw new RangeError(`Unknown presentation act: ${act}`);
+  }
+  const preset = presentation ? CONFIG.presentation.acts[act] : {};
   const { oxygen, food } = CONFIG.difficulties[difficulty];
   meta = {
     elapsedInPhase: 0, rng: (seed >>> 0) ^ 0x9e3779b9, nextId: 1,
@@ -127,13 +144,16 @@ export function newGame({ site = CONFIG.defaults.site, difficulty = CONFIG.defau
     blocked: [], blockedBy: {}, blackoutNight: null, zeroCubesNext: null, scrubberLog: null,
     coldNights: 0, damageStreak: 0, samples: 0, forecastAsked: false, flaresUsed: 0,
     warned: { oxygen: false, food: false }, effects: [],
+    presentation: Boolean(presentation), showcaseFlareSol: null,
   };
   STATE = {
-    sol: 1, phase: "morning", speed: 1, paused: false, status: "playing",
-    site, difficulty, oxygen, food, damage: 0,
+    sol: preset.sol ?? 1, phase: "morning", status: "playing", paused: false,
+    speed: presentation ? CONFIG.presentation.speed : 1,
+    site, difficulty,
+    oxygen: preset.oxygen ?? oxygen, food: preset.food ?? food, damage: preset.damage ?? 0,
     cubes: 0, alloc: resetAllocation(),
     panels: { total: CONFIG.panels, broken: 0, dusty: 0 },
-    crop: { type: CONFIG.defaults.crop, progress: 0 },
+    crop: structuredClone(preset.crop ?? { type: CONFIG.defaults.crop, progress: 0 }),
     dose: 0, fatigue: 0, crates: 0, stars: 0,
     weather: "clear", forecast: null, scrubberBroken: false, pending: [], log: [],
     solarMode: solarData?.mode ?? "archive",
@@ -141,6 +161,7 @@ export function newGame({ site = CONFIG.defaults.site, difficulty = CONFIG.defau
     seed,
   };
   meta.schedule = buildSchedule();
+  if (preset.showcase) addShowcaseEvents();
   startSol();
   return STATE;
 }
@@ -245,11 +266,16 @@ function weightedFlareClass() {
 }
 
 // The first flare uses any NASA record, later flares prefer class X (TZ 4).
+// The presentation's showcase flare is always strong.
 function nextFlare() {
   const records = STATE.flares.filter((flare) => typeof flare?.classType === "string");
   const strong = records.filter((flare) => flare.classType.startsWith("X"));
-  const pool = meta.flaresUsed++ > 0 && strong.length ? strong : records;
-  if (!pool.length) return { flareClass: weightedFlareClass(), flare: null };
+  const showcase = STATE.sol === meta.showcaseFlareSol;
+  const preferStrong = meta.flaresUsed++ > 0 || showcase;
+  const pool = preferStrong && strong.length ? strong : records;
+  if (!pool.length) {
+    return { flareClass: showcase ? CONFIG.presentation.flareClass : weightedFlareClass(), flare: null };
+  }
   const flare = pick(pool);
   const letter = flare.classType[0];
   return {
@@ -583,7 +609,7 @@ function finishGame() {
   meta.queue = [];
   meta.autoPaused = false;
   STATE.paused = false;
-  clearSave();
+  if (!meta.presentation) clearSave(); // a demo must not erase the player's save
   emit("gameover", getEndReport());
 }
 
@@ -697,7 +723,7 @@ function storage() {
 export function save() {
   try {
     const store = storage();
-    if (!store || STATE.status !== "playing") return false;
+    if (!store || STATE.status !== "playing" || meta.presentation) return false;
     store.setItem(CONFIG.saveKey, JSON.stringify({ v: CONFIG.saveVersion, state: STATE, meta }));
     return true;
   } catch {
