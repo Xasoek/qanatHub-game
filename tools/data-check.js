@@ -18,6 +18,10 @@ assert.deepEqual(Object.keys(SITES).sort(), ["arcadia", "gale", "jezero"]);
 for (const site of Object.values(SITES)) {
   assert.ok(sourceIds.has(site.sourceId) && site.lat >= -90 && site.lat <= 90 && site.lon >= 0 && site.lon < 360);
 }
+for (const site of Object.values(SITES)) {
+  assert.ok(sourceIds.has(site.profileSourceId) && site.profile.length >= 10);
+  for (const point of site.profile) assert.ok(Number.isInteger(point.elevationM) && Math.abs(point.elevationM) < 30_000);
+}
 for (const study of STUDIES) assert.match(study.url, /^https:\/\/osdr\.nasa\.gov\//);
 
 const NOW = Date.parse("2026-11-14T10:00:00Z");
