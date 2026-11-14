@@ -53,6 +53,10 @@ export const SOURCES = [
     usedFor: "site choice: elevation profiles" },
   { id: "osdr", org: "NASA", title: "Open Science Data Repository (OSDR)", url: "https://osdr.nasa.gov/bio/repo/",
     usedFor: "Bip's lines about muscles, bones and fatigue" },
+  { id: "ntrsIssDose", org: "NASA NTRS", title: "Moon 2 Mars Space Radiation Protection \u201cBuying Down\u201d Risks to Crew (Simonsen et al.)",
+    url: "https://ntrs.nasa.gov/citations/20250006168", usedFor: "dose scale: a day on the ISS" },
+  { id: "ntrsSleep", org: "NASA NTRS", title: "Humans are Capable of Achieving Sufficient Sleep in Microgravity",
+    url: "https://ntrs.nasa.gov/citations/20220014772", usedFor: "Bip's lines about sleep and fatigue" },
   { id: "csaFood", org: "Canadian Space Agency", title: "Toolkit for educators and youth – Food production on the Moon and in remote areas",
     url: "https://www.asc-csa.gc.ca/eng/youth-educators/toolkits/food-production/", usedFor: "Bip's lines about food; For Teachers" },
   { id: "csaStem", org: "Canadian Space Agency", title: "Space resources for STEM and youth organizations",
@@ -147,6 +151,13 @@ export const FACTS = [
     quote: "The biggest event occurred on May 20 with a solar flare later estimated to be an X12" },
   { id: "radDose2024", sourceId: "radStorm2024", value: { microgray: 8100, chestXrays: 30 },
     quote: "If astronauts had been standing next to NASA’s Curiosity Mars rover at the time, they would have received a radiation dose of 8,100 micrograys — equivalent to 30 chest X-rays." },
+  // ISS doses are effective doses in mSv; the RAD figure above is an absorbed dose in µGy.
+  // They are different units, so the game must not compare them as the same number.
+  { id: "issDailyDose", sourceId: "ntrsIssDose",
+    value: { mSvPerDayMin: 0.2, mSvPerDayMax: 0.5, mSvSixMonthsMin: 40, mSvSixMonthsMax: 90 },
+    quote: "On the International Space Station (ISS), effective doses accumulate at a rate of approximately 0.2 to 0.5 mSv/day, averaging between ~40 and 90 mSv during a typical six-month mission" },
+  { id: "sleepInSpace", sourceId: "ntrsSleep", value: { hoursInSpace: 6, hoursNeeded: 7 },
+    quote: "Studies consistently find that humans average approximately six hours of sleep per night in space, which is less than they sleep on Earth. Consensus recommendations suggest that humans need at least seven hours of sleep per night for appropriate functioning." },
   { id: "opportunityStorm", sourceId: "opportunity",
     value: { lastContact: "2018-06-10", endOfMission: "2019-02-13" },
     quote: "June 10, 2018: Last communication with Opportunity Feb. 13, 2019: NASA declares End of Mission" },
@@ -166,7 +177,7 @@ export const FACTS = [
     quote: "Since Perseverance landed on Mars in 2021, MOXIE has generated a total of 122 grams of oxygen – about what a small dog breathes in 10 hours." },
 ];
 
-/** OSDR studies for Bip's lines. Only the study titles are claimed. */
+/** OSDR studies for Bip's lines. Only the study titles are claimed. Sleep is in FACTS.sleepInSpace. */
 export const STUDIES = [
   { id: "OSD-195", topic: "muscle", title: "Effects of 21 days of bedrest on human skeletal muscle gene expression",
     url: "https://osdr.nasa.gov/bio/repo/data/studies/OSD-195" },
@@ -313,33 +324,36 @@ function writeCache(storage, entry) {
   } catch { /* Storage can be full or blocked; the game goes on without a cache. */ }
 }
 
-async function fetchLive(fetchImpl, now, signal) {
-  const params = `startDate=${isoDate(now - (LIVE.days - 1) * DAY_MS)}&endDate=${isoDate(now)}`;
-  for (const endpoint of LIVE.endpoints) {
-    if (signal.aborted) return null;
-    try {
-      const url = `${endpoint}${endpoint.includes("?") ? "&" : "?"}${params}`;
-      const response = await fetchImpl(url, { signal });
-      if (!response.ok) continue;
-      const body = await response.json();
-      const flares = extractFlares(body);
-      if (flares.length) return flares;
-    } catch { /* Offline, CORS or a bad body: try the next endpoint. */ }
-  }
-  return null;
+/** One endpoint: resolves to its flares or rejects, so Promise.any can pick the first good one. */
+async function fetchEndpoint(fetchImpl, endpoint, params, signal) {
+  const url = `${endpoint}${endpoint.includes("?") ? "&" : "?"}${params}`;
+  const response = await fetchImpl(url, { signal });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const flares = extractFlares(await response.json());
+  if (!flares.length) throw new Error("no flares");
+  return flares;
 }
 
-/** Resolves to null after timeoutMs even when fetch ignores the abort signal. */
+/**
+ * Asks all endpoints at once and keeps the first non-empty answer: a host that hangs
+ * (the DONKI site often does) must not use up the whole timeout. Resolves to null after
+ * timeoutMs even when fetch ignores the abort signal.
+ */
 async function fetchWithDeadline(fetchImpl, now, timeoutMs) {
+  const params = `startDate=${isoDate(now - (LIVE.days - 1) * DAY_MS)}&endDate=${isoDate(now)}`;
   const controller = new AbortController();
   let timer;
   const deadline = new Promise((resolve) => {
-    timer = setTimeout(() => { controller.abort(); resolve(null); }, timeoutMs);
+    timer = setTimeout(() => resolve(null), timeoutMs);
   });
+  const first = Promise.any(LIVE.endpoints.map((endpoint) => (async () =>
+    fetchEndpoint(fetchImpl, endpoint, params, controller.signal))()))
+    .catch(() => null);
   try {
-    return await Promise.race([fetchLive(fetchImpl, now, controller.signal), deadline]);
+    return await Promise.race([first, deadline]);
   } finally {
     clearTimeout(timer);
+    controller.abort();
   }
 }
 
