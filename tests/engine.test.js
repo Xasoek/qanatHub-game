@@ -354,6 +354,41 @@ test("the engine saves every night, loads the same sol and clears the save after
   assert.equal(hasSave(), false);
 });
 
+test("a damaged, foreign or finished save never offers Continue (#9)", () => {
+  const storage = memoryStorage();
+  useStorage(storage);
+  newGame({ seed: 9 });
+  skipToDecision();
+  allocate("air", 2);
+  nextDay(); // the night autosaves sol 2
+  const good = JSON.parse(storage.getItem(CONFIG.saveKey));
+  assert.equal(hasSave(), true);
+
+  const broken = {
+    "not JSON": "{oops",
+    "empty object": "{}",
+    "another version": JSON.stringify({ ...good, v: CONFIG.saveVersion + 1 }),
+    "no state": JSON.stringify({ v: good.v, meta: good.meta }),
+    "finished mission": JSON.stringify({ ...good, state: { ...good.state, status: "rescued" } }),
+    "sol out of range": JSON.stringify({ ...good, state: { ...good.state, sol: 99 } }),
+    "unknown site": JSON.stringify({ ...good, state: { ...good.state, site: "olympus" } }),
+    "negative oxygen": JSON.stringify({ ...good, state: { ...good.state, oxygen: -1 } }),
+    "missing log": JSON.stringify({ ...good, state: { ...good.state, log: null } }),
+    "missing engine data": JSON.stringify({ ...good, meta: { ...good.meta, queue: undefined } }),
+  };
+  newGame({ seed: 1 });
+  for (const [name, raw] of Object.entries(broken)) {
+    storage.setItem(CONFIG.saveKey, raw);
+    assert.equal(hasSave(), false, `${name}: no Continue`);
+    assert.equal(load(), null, `${name}: load gives null`);
+    assert.equal(STATE.seed, 1, `${name}: the current game stays`);
+  }
+  assert.doesNotThrow(() => newGame({ seed: 2 }), "a new game still starts");
+  storage.setItem(CONFIG.saveKey, JSON.stringify(good));
+  assert.equal(hasSave(), true);
+  assert.equal(load().sol, good.state.sol);
+});
+
 test("saves fail quietly without storage", () => {
   newGame({ seed: 1 });
   assert.equal(save(), false);
