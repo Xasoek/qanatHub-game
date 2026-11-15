@@ -2,6 +2,7 @@
 // Every gameplay number lives here. tools/sim.js checks the balance targets.
 export const CONFIG = {
   missionSols: 30,
+  field: { brushColumns: 24, brushRows: 12, brushRadius: .065, clearFraction: .82, antennaTolerance: 8, walkSpeed: 3.2, panelClamps: 4, seedSites: 6, waterRange: [40, 70] },
   simulation: {
     // Game design, not physics: the Arcadia base was built with a larger array to pay for heating.
     generationBonus: 0, generationBySite: { gale: 0, jezero: 0, arcadia: 1 }, cableBonus: 2, hours: 6, batteryCapacity: 6, batteryInitial: 2, drawLimit: 2,

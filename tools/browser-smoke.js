@@ -35,7 +35,8 @@ test("the standalone index.html plays offline on desktop and mobile", async (t) 
       await page.goto(url);
 
       assert.equal(await page.locator("#game-title").textContent(), "One Sol to Rescue");
-      // A first visit opens the "How to play" guide at once; it pages forward and back and closes for good.
+      // Hands-on onboarding keeps the manual behind the help button; it pages forward and back and closes for good.
+      await page.locator("#help").click();
       const guide = page.getByRole("dialog", { name: "Your mission" });
       await guide.waitFor();
       assert.equal(await page.locator("#guide-progress").textContent(), `1/${GUIDE_STEPS.length}`);

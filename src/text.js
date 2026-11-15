@@ -1,3 +1,4 @@
+import { FIELD_COPY } from "./field-copy.js";
 import { CONFIG } from "./config.js";
 
 // Story and interface strings share the same keys in both languages.
@@ -948,7 +949,7 @@ mergeText(TEXT.en.sim, {
     inspectAir:"Check the air sensors",co2:"Replace the CO₂ cartridge",airTest:"Test the air quality",
     findLeak:"Find the water leak",isolate:"Close the valve to the leak",pipe:"Replace the leaking pipe",pumpTest:"Test the pump and recycler",
     inspectAntenna:"Inspect the antenna",radio:"Repair the antenna cable",actuator:"Repair the pointing motor",align:"Align the antenna on the relay",
-    inspectFarm:"Inspect the greenhouse",lights:"Replace the grow lamps",nutrients:"Mix fresh nutrient solution",
+    inspectFarm:"Inspect the greenhouse",lights:"Replace the grow lamps",nutrients:"Plant seeds and prepare the water feed",
     inspectHeat:"Find where heat escapes",insulation:"Repair the insulation",roverDiag:"Diagnose the rover",roverFix:"Repair the rover battery and wheel",
     rest:"Rest and drink water",beacon:"Turn on the rendezvous beacon",lander:"Service the return vehicle",
     near:"Fetch the nearby crate (+2 food, +1 part)",far:"Drive to the distant crate (+4 food, +2 parts)"},
@@ -1034,7 +1035,7 @@ mergeText(TEXT.ru.sim, {
     inspectAir:"Проверить датчики воздуха",co2:"Заменить патрон CO₂",airTest:"Проверить качество воздуха",
     findLeak:"Найти утечку воды",isolate:"Перекрыть клапан",pipe:"Заменить трубу",pumpTest:"Проверить насос и переработку",
     inspectAntenna:"Осмотреть антенну",radio:"Починить кабель антенны",actuator:"Починить мотор наведения",align:"Навести антенну на ретранслятор",
-    inspectFarm:"Осмотреть теплицу",lights:"Заменить лампы",nutrients:"Приготовить питательный раствор",
+    inspectFarm:"Осмотреть теплицу",lights:"Заменить лампы",nutrients:"Посадить семена и настроить полив",
     inspectHeat:"Найти, где уходит тепло",insulation:"Починить изоляцию",roverDiag:"Проверить ровер",roverFix:"Починить батарею и колесо ровера",
     rest:"Отдохнуть и попить воды",beacon:"Включить маяк встречи",lander:"Обслужить возвратный аппарат",
     near:"Забрать ближний ящик (+2 еды, +1 запчасть)",far:"Съездить к дальнему ящику (+4 еды, +2 запчасти)"},
@@ -1347,3 +1348,15 @@ TEXT.en.sources.data = "NASA data and science sources";
 TEXT.ru.sources.data = "Данные NASA и научные источники";
 TEXT.en.ui.daily = "Mission of the day · {date}";
 TEXT.ru.ui.daily = "Миссия дня · {date}";
+
+// Text for the hands-on equipment lessons.
+
+TEXT.en.field=FIELD_COPY.en;
+TEXT.ru.field=FIELD_COPY.ru;
+
+TEXT.en.sim.tip="Open a job and use the tools. Repairs take effect when you finish the procedure. Putting tools away refunds an unfinished job. Rest and Beep orders are planned for sunset.";
+TEXT.ru.sim.tip="Открой работу и используй инструменты. Ремонт меняет базу после выполнения процедуры. Незавершённую работу можно отменить с возвратом затрат. Отдых и поручения Бипу идут в план до заката.";
+TEXT.en.sim.reason.closed="Mark cannot do maintenance until the next sol after this decision.";
+TEXT.ru.sim.reason.closed="После этого решения Марк не может выполнять ремонт до следующего сола.";
+TEXT.en.guide.rows.job="opens the equipment. Use the tools and check the result. Hours and supplies are reserved; cancelling unfinished work returns them.";
+TEXT.ru.guide.rows.job="открывает оборудование. Используй инструменты и проверь результат. Часы и припасы резервируются; отмена незавершённой работы возвращает их.";

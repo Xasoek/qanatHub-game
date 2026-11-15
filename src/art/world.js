@@ -423,7 +423,7 @@ export function createWorld(container, { onPick = () => {}, stateRoot = containe
   }
 
   // ---------- picking and Mark's walk ----------
-  let destination = null, waypoints = [], selected = null;
+  let destination = null, waypoints = [], selected = null, arrival = null, workWalk = false;
   const ray = new THREE.Raycaster(), mouse = new THREE.Vector2();
   let down;
   renderer.domElement.addEventListener("pointerdown", (e) => { down = [e.clientX, e.clientY]; });
@@ -435,8 +435,9 @@ export function createWorld(container, { onPick = () => {}, stateRoot = containe
     const hit = ray.intersectObjects(pickables, false).find((h) => h.object.userData.objectId);
     if (hit) onPick(hit.object.userData.objectId);
   });
-  function focus(id) {
-    if (!objects[id]) return;
+  function focus(id, onArrival = null) {
+    if (!objects[id]) return false;
+    arrival = onArrival; workWalk = Boolean(onArrival);
     selected = id;
     const g = objects[id].group;
     ring.visible = true;
@@ -444,8 +445,10 @@ export function createWorld(container, { onPick = () => {}, stateRoot = containe
     ring.scale.setScalar(id === "air" ? 3.6 : id === "farm" ? 3 : 2);
     for (const o of Object.values(objects)) o.label.classList.toggle("selected", o === objects[id]);
     const [x, z] = APPROACH[id];
-    waypoints = [new THREE.Vector3(mark.position.x, 0, 2.4), new THREE.Vector3(x, 0, 2.4), new THREE.Vector3(x, 0, z)];
+    const end=new THREE.Vector3(x,0,z);
+    waypoints = Math.hypot(mark.position.x-x,mark.position.z-z)<.15?[end]:[new THREE.Vector3(mark.position.x, 0, 2.4), new THREE.Vector3(x, 0, 2.4), end];
     destination = waypoints.shift();
+    return true;
   }
 
   // ---------- orbit travel ----------
@@ -622,9 +625,12 @@ export function createWorld(container, { onPick = () => {}, stateRoot = containe
     if (destination) {
       const dx=destination.x-mark.position.x, dz=destination.z-mark.position.z;
       const distance=Math.hypot(dx,dz);
-      if (distance<.012) destination=waypoints.shift() ?? null;
+      if (distance<.012) {
+        destination=waypoints.shift() ?? null;
+        if(!destination&&arrival){const done=arrival;arrival=null;workWalk=false;queueMicrotask(done);}
+      }
       else {
-        travel=Math.min(dt*1.65,distance);
+        travel=Math.min(dt*(workWalk?CONFIG.field.walkSpeed:1.65),distance);
         mark.position.x+=dx*travel/distance;
         mark.position.z+=dz*travel/distance;
         const turn=Math.atan2(dx,dz)-mark.rotation.y;
@@ -684,7 +690,7 @@ export function createWorld(container, { onPick = () => {}, stateRoot = containe
       gimbal.rotation.y = reduced || !tracking ? bearing : damp(gimbal.rotation.y,bearing,1.5,dt);
       const carriage = groups.repair.userData.carriage;
       if (!reduced && view.repairActive) carriage.position.x = Math.sin(now * .0008) * .9;
-      groups.farm.userData.growLights.emissiveIntensity = view.farmActive ? 2.2 : .25;
+      groups.farm.userData.growLights.emissiveIntensity = view.farmActive ? (view.growLightsFixed ? 2.2 : .65) : .25;
       const light = groups.air.userData.entryLight;
       light.emissive.setHex(view.alarm ? 0xff552c : 0xffba69);
       light.emissiveIntensity = view.alarm && !reduced
@@ -704,9 +710,10 @@ export function createWorld(container, { onPick = () => {}, stateRoot = containe
     /** Apply the visible parts of STATE. */
     setState(state) {
       if (!state) return;
-      view.radioActive = state.phase === "day" && state.alloc?.comms > 0;
+      view.radioActive = state.phase === "day" && state.alloc?.comms > 0 && (!state.sim || Boolean(state.sim.done?.actuator));
       view.repairActive = state.phase === "day" && state.alloc?.repair > 0;
       view.farmActive = state.alloc?.farm > 0;
+      view.growLightsFixed = !state.sim || Boolean(state.sim.done?.lights);
       missionSol = state.sol ?? missionSol;
       if (state.site && state.site !== currentSite) { currentSite = state.site; placeMarker(state.site); }
       view.nightTarget = PHASE_NIGHT[state.phase] ?? 0;
@@ -729,6 +736,12 @@ export function createWorld(container, { onPick = () => {}, stateRoot = containe
     setPaused(value) { paused = value; },
     flare() { view.flash = 1; },
     focus,
+    walkTo(id, onArrival) {
+      if(!focus(id,onArrival))return false;
+      if(orbital&&!travelling)travel(false);
+      return true;
+    },
+    cancelWalk(){arrival=null;workWalk=false;destination=null;waypoints=[];},
     zoom(factor) {
       if (travelling) return;
       if (!orbital && factor < 1 && camera.zoom <= 0.6) { travel(true); return; }
