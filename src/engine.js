@@ -492,6 +492,15 @@ export function getActiveEvent() {
   return { ...publicEvent(meta.active), remainingMs: meta.active.remainingMs };
 }
 
+/**
+ * Systems a decision closed until the next sol, with the choice that closed them,
+ * e.g. {farm: "flare.shelter", repair: "flare.shelter"}. Empty when nothing is closed.
+ */
+export function getBlockedSystems() {
+  return Object.fromEntries(meta.blocked.map((system) =>
+    [system, STATE.log[meta.blockedBy[system]]?.choice ?? null]));
+}
+
 // ---------- Settling a sol ----------
 
 function settleDay() {

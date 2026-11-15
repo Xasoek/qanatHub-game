@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import { CONFIG } from "../src/config.js";
 import {
-  STATE, allocate, endSol, getActiveEvent, getEndReport, hasSave, load, newGame, on,
+  STATE, allocate, endSol, getActiveEvent, getBlockedSystems, getEndReport, hasSave, load, newGame, on,
   resolveEvent, save, setSpeed, skipToDecision, tick,
 } from "../src/engine.js";
 import { playMission, runBatch } from "../tools/sim.js";
@@ -242,6 +242,53 @@ test("resolveEvent rejects wrong IDs, unknown choices and unaffordable choices",
   }
   assert.equal(resolveEvent(scrubber.id, "later"), true);
   assert.equal(STATE.scrubberBroken, true);
+});
+
+/** Finds the first seed where an event of `type` happens and leaves it open. */
+function findEvent(type, options = {}) {
+  for (let seed = 0; seed < 60; seed++) {
+    const event = playUntil(type, { ...options, seed });
+    if (event) return event;
+  }
+  return null;
+}
+
+test("getBlockedSystems names the systems a decision closed until the next sol (#11)", () => {
+  newGame({ seed: 1 });
+  assert.deepEqual(getBlockedSystems(), {});
+
+  const flare = findEvent("flare");
+  assert.ok(flare);
+  assert.equal(allocate("farm", 1), true, "planning is allowed while the event is open");
+  const freeBefore = STATE.cubes;
+  resolveEvent(flare.id, "shelter");
+  assert.deepEqual(getBlockedSystems(), { farm: "flare.shelter", repair: "flare.shelter" });
+  assert.equal(STATE.alloc.farm, 0, "cubes in a closed system come back");
+  assert.equal(STATE.cubes, freeBefore + 1);
+  assert.equal(allocate("farm", 1), false);
+  assert.equal(allocate("repair", 1), false);
+  assert.equal(allocate("air", 1), true, "other systems stay open");
+  getBlockedSystems().air = "changed";
+  assert.equal(getBlockedSystems().air, undefined, "the result is a copy");
+  nextDay();
+  assert.deepEqual(getBlockedSystems(), {}, "the next sol opens everything again");
+
+  const storm = findEvent("storm");
+  resolveEvent(storm.id, "fold");
+  assert.deepEqual(getBlockedSystems(), { heat: "storm.fold" });
+  assert.equal(allocate("heat", 1), false);
+
+  const dust = findEvent("dustyPanels");
+  resolveEvent(dust.id, "clean");
+  assert.deepEqual(getBlockedSystems(), { farm: "dustyPanels.clean", repair: "dustyPanels.clean" });
+
+  const rover = findEvent("roverCrate");
+  resolveEvent(rover.id, "food");
+  assert.deepEqual(getBlockedSystems(), { farm: "roverCrate.food" });
+
+  const keep = findEvent("storm");
+  resolveEvent(keep.id, "keep");
+  assert.deepEqual(getBlockedSystems(), {}, "choices without blocks close nothing");
 });
 
 test("working through a strong flare causes a dose consequence on the next sol", () => {
