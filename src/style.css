@@ -503,3 +503,13 @@ button.primary:hover:not(:disabled) { background: linear-gradient(#e2c58e, #c7a4
 .work-filter button{font-size:12px;min-height:38px;padding:7px 12px;border-radius:8px;}
 .work-filter button[aria-pressed=true]{color:#1c2b31;background:linear-gradient(#dfc298,#b08d58);border-color:#ead3a9;}
 #work-selection{font-size:13px;color:#cbdad5;line-height:1.5;}
+
+.intro-video-screen{position:absolute;inset:0;z-index:30;background:#000;display:grid;place-items:center;isolation:isolate;}
+#intro-video{width:100%;height:100%;object-fit:contain;position:absolute;inset:0;}
+.intro-video-head{position:absolute;top:0;left:0;right:0;padding:22px 28px 55px;background:linear-gradient(#0009,transparent);pointer-events:none;}
+.intro-video-head h2{font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#e9e5d6;text-shadow:0 2px 8px #000;}
+#intro-progress{font-size:13px;color:#f0d0a7;margin-top:9px;}
+.intro-video-screen .intro-actions{position:absolute;bottom:65px;right:26px;display:flex;gap:8px;}
+.intro-video-screen .intro-actions button{min-height:44px;padding:10px 18px;background:#172832d4;backdrop-filter:blur(8px);border:1px solid #c7cdc15c;border-radius:9px;color:#e9e6d8;}
+.intro-video-screen .intro-actions .primary{background:#d5b47ee8;color:#142431;border-color:#f6d6a6;}
+@media(max-height:520px){.intro-video-head{padding:12px 16px 25px}.intro-video-screen .intro-actions{bottom:52px;right:12px}.intro-video-screen .intro-actions button{min-height:38px;padding:7px 12px;font-size:12px}}

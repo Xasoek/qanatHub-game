@@ -6,7 +6,7 @@ for(const touch of [false,true])test('hands-on inspection and cleaning '+(touch?
  const browser=await chromium.launch();t.after(()=>browser.close());
  const context=await browser.newContext({viewport:touch?{width:800,height:360}:{width:1280,height:800},hasTouch:touch,offline:true});
  const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto(url);assert(await page.locator('#guide-layer').isHidden());await page.locator('#start').click();
+ await page.goto(url);assert(await page.locator('#guide-layer').isHidden());await page.locator('#start').click();await page.locator('#intro-skip').click();
  await page.locator('#field-next').click();
  assert(await page.locator('#field-layer').isVisible());
  await page.locator('[data-probe="dust"]').click();assert(await page.locator('.field-question').isHidden());
@@ -112,7 +112,7 @@ for(const task of ['cable','seal','isolate','co2','actuator','lights','route','p
 
 test('free activity choice works from morning, filters by object and keeps prerequisite locks',async t=>{
  const browser=await chromium.launch();t.after(()=>browser.close());const page=await browser.newPage({viewport:{width:1280,height:800},offline:true});
- await page.goto(url);await page.locator('#start').click();await page.locator('#work-open').click();
+ await page.goto(url);await page.locator('#start').click();await page.locator('#intro-skip').click();await page.locator('#work-open').click();
  assert(await page.locator('#work-screen').isVisible());
  await page.locator('[data-filter="farm"]').click();
  assert.equal(await page.locator('#work-screen').getByRole('button',{name:/^Inspect the solar array/}).count(),0);
