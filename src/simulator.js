@@ -13,7 +13,7 @@ export function makeSimulation() {
     battery: cfg.batteryInitial, generated: 0, charged: 0, nightUse: 0,
     spares: cfg.spares, plan: [], lastPlan: [], done: {}, water: cfg.water.start,
     patchUntil: 0, crates: { near: false, far: false }, robotUsed: false,
-    departed: false, sentSol: null, sentDamage: null, reply: null, notes: [], commsLevel: 0,
+    interactive: {}, workedHours: 0, completedToday: [], departed: false, sentSol: null, sentDamage: null, reply: null, notes: [], commsLevel: 0,
   };
   syncLegacy(sim);
   return sim;
@@ -69,7 +69,7 @@ export function labor(state, alloc = state.alloc) {
 }
 
 export function planned(state) {
-  return state.sim.plan.reduce((sum, key) => sum + cfg.tasks[key].hours, 0);
+  return (state.sim.workedHours ?? 0) + state.sim.plan.reduce((sum, key) => sum + cfg.tasks[key].hours, 0);
 }
 
 /** Work hours today. A tired astronaut works fewer hours (Mark's health). */
@@ -179,6 +179,7 @@ export function cancelTask(state, key) {
   if (i < 0) return false;
   const task = cfg.tasks[key];
   state.sim.plan.splice(i, 1);
+  if(state.sim.interactive)delete state.sim.interactive[key];
   state.cubes += task.cubes;
   state.sim.spares += task.parts;
   state.oxygen = round(state.oxygen + task.oxygen);
@@ -218,6 +219,7 @@ export function startSimulationSol(state) {
     sim.sentSol = null;
   }
   sim.plan = [];
+  sim.interactive={};sim.workedHours=0;sim.completedToday=[];
 }
 
 /** Completes the reserved steps at sunset. Returns the comms level before the work, for the engine. */
@@ -225,11 +227,11 @@ export function settleSimulationDay(state, blocked) {
   const sim = state.sim;
   if (!sim) return 0;
   const levelBefore = commsLevelOf(sim);
-  sim.lastPlan = [];
+  sim.lastPlan = [...(sim.completedToday ?? [])];
   for (const key of [...sim.plan]) {
     const task = cfg.tasks[key];
     // A shelter or cleaning decision keeps Mark indoors: field and maintenance work is refunded.
-    if (blocked && key !== "robot" && key !== "rest") {
+    if (sim.interactive?.[key] || (blocked && key !== "robot" && key !== "rest")) {
       cancelTask(state, key);
       sim.notes.push("cancelled");
       continue;
@@ -268,6 +270,19 @@ export function settleSimulationDay(state, blocked) {
   sim.plan = [];
   syncLegacy(sim);
   return levelBefore;
+}
+
+/** Executes one demonstrated task now while retaining other reservations. */
+export function finishInteractiveTask(state,key){
+  const sim=state.sim;
+  if(!sim?.interactive?.[key] || !sim.plan.includes(key))return null;
+  const others=sim.plan.filter(item=>item!==key);
+  delete sim.interactive[key];sim.plan=[key];
+  const before=settleSimulationDay(state,false);
+  sim.plan=others;
+  sim.workedHours+=cfg.tasks[key].hours;
+  sim.completedToday.push(key);
+  return before;
 }
 
 /** Uses water at sunset. Without water the plants stop and Mark gets tired. */

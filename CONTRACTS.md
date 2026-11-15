@@ -102,3 +102,25 @@ completed steps; `taskReason(key)` returns `null` or why a step cannot be planne
 and `rating` (`exceptional|operational|damaged|limited`, rescues only). Older saves are filled in by
 `normalizeSimulation` on `load()`. The air and water rules live once in `src/simulator.js` (`airLoss`, `waterUse`),
 used by both the engine and `simulationPreview()`. Balance bots: `tools/campaign-bot.js`.
+
+## Hands-on equipment lessons
+beginFieldTask(key) reserves the normal hours, energy, parts and EVA air. The UI pauses
+mission progression while tools are open. finishFieldTask(key) executes that reservation
+once, updates the scene immediately, adds workedHours/completedToday, logs the cost and
+retains it through save/load. Duplicate completion is rejected. Incomplete interactive
+reservations are refunded at sunset, including after a reload. unplanTask cancels them.
+Legacy planTask remains available to simulation bots and logistical rest/robot orders.
+Daylight generation is recalculated at the next sol; fieldReadings exposes the current
+weather's potential generation and actual air/water loss for the before/after explanation.
+The opening objective leads to panel diagnosis and cleaning; the long guide is optional.
+All equipment diagrams and percentages are educational game models.
+
+## Activity choice and arrival
+The UI offers the next recommended step and an object-filtered activity board. Picking
+an object walks Mark to its approach point before opening that object's jobs. Picking a
+job reserves it with beginFieldTask and opens its lesson only on arrival.
+The 3D view exposes walkTo(objectId, onArrival) and cancelWalk(); a newer focus replaces
+the arrival callback. The UI guards callbacks against destination changes and refunds
+cancelled reservations. Mission ticks wait during the approach. A non-WebGL fallback
+opens the selected jobs directly. Walking is presentation state and is not saved; a
+reserved unfinished lesson can be resumed after loading.

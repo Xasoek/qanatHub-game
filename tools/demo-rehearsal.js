@@ -6,6 +6,7 @@ try{
  const page=await browser.newPage({viewport:{width:1280,height:800},offline:true});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.clock.install();await page.goto(new URL('../index.html',import.meta.url).href);
+ if(await page.locator('#guide-layer').isVisible())await page.locator('#guide-skip').click();
  await page.locator('#menu').click();await page.locator('#demo-start').click();
  let ms=0;const decisions=[];let allocatedSol=0;
  for(;ms<420000;ms+=1000){

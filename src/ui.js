@@ -1,10 +1,11 @@
+import { createFieldWork } from "./field-work.js";
 // Role 2: game interface over the 3D outpost. The UI reads STATE and changes it only through the engine API.
 import { ART_CREDITS, createWorld, hasCapableGpu, missionSnapshot, renderBase, renderProfile } from "./art.js";
 import { CONFIG } from "./config.js";
 import { FACTS, SITES, loadSolarData } from "./data.js";
 import {
   STATE, allocate, endSol, getActiveEvent, getBlockedSystems, getEndReport, hasSave, load, newGame, on, resolveEvent, setSpeed,
-  skipToDecision, tick, planTask, unplanTask, taskAvailable, simulationPreview, drawBattery, reviewSol, save, missionBoard, taskReason,
+  skipToDecision, tick, planTask, unplanTask, taskAvailable, simulationPreview, drawBattery, reviewSol, save, missionBoard, taskReason, beginFieldTask, finishFieldTask, fieldReadings,
 } from "./engine.js";
 import { DAILY_TASKS, STORY_SOURCES, TRAINING_TASKS, playIntro, t } from "./text.js";
 import { createGuide, guideSeen, markGuideSeen } from "./guide.js";
@@ -128,7 +129,7 @@ export async function mountGame(root) {
     <section id="mission-screen" hidden>
       <p id="sol" class="sol-line"></p>
       <aside class="side">
-        <section class="beep-card"><button id="work-open" type="button"></button>
+        <section class="beep-card"><div id="field-objective"><p id="field-goal"></p><button id="field-next" class="primary" type="button"></button></div><button id="field-cancel-walk" type="button" hidden></button><button id="work-open" type="button"></button>
           <div class="beep-title"><span class="robot" aria-hidden="true"></span><span id="beep-name">Beep</span><span id="phase-chip" class="chip"></span></div>
           <p id="bip" aria-live="polite"></p><p id="warning" role="status"></p><p id="walk" class="muted"></p>
           <p id="daily" class="task"></p><p id="task-result" role="status" class="done"></p>
@@ -173,12 +174,13 @@ export async function mountGame(root) {
       <p id="work-fault"></p><p id="work-crop"></p><p id="work-radio"></p>
       <p id="work-reply"></p><p id="work-tip"></p><p id="work-eva"></p><p id="work-final"></p>
       <button id="work-draw" type="button"></button>
-      <div id="work-tasks" class="work-tasks"></div><p id="work-error" role="status"></p><details id="work-notebook" class="work-notebook"></details><p id="work-model"></p>
+      <nav id="work-filter" class="work-filter" aria-label=""></nav><p id="work-selection"></p><div id="work-tasks" class="work-tasks"></div><p id="work-error" role="status"></p><details id="work-notebook" class="work-notebook"></details><p id="work-model"></p>
     </section>
     <section id="portrait-lock" class="portrait-lock" role="alert"><div class="rotate-device" aria-hidden="true"></div><h2 id="rotate-title"></h2><p id="rotate-hint"></p></section>
     <section id="reading-screen" class="sheet reading" hidden>
       <div class="sheet-head"><h2 id="reading-title"></h2><button id="back" type="button"></button></div><div id="reading-copy"></div>
     </section>
+    <div id="field-layer" class="field-layer" hidden></div>
     <div id="guide-layer" class="guide-layer" hidden></div>`;
 
   const listen = (id, fn) => find(id).addEventListener("click", fn);
@@ -191,6 +193,75 @@ export async function mountGame(root) {
     onLanguage: () => { lang = lang === "en" ? "ru" : "en"; render(); },
     onClose: () => { offerGuide = false; render(); },
   });
+  let fieldBefore=null,approaching=null,approachSerial=0,workFilter=null;
+  const field=createFieldWork({layer:find("field-layer"),copy,
+    onCancel:key=>{unplanTask(key);save();},
+    onComplete:key=>{
+      if(!finishFieldTask(key))return false;
+      const after=fieldReadings();
+      const summary=copy("field.changed",{energyBefore:fieldBefore.energy,energyAfter:after.energy,dustBefore:fieldBefore.dust,dustAfter:STATE.panels.dusty,
+        airBefore:fieldBefore.air,airAfter:after.air,waterBefore:fieldBefore.water,waterAfter:after.water});
+      sound.play("good");renderMission();return summary;
+    },
+    onClose:()=>{world?.setPaused(matchMedia("(orientation: portrait)").matches);renderMission();}
+  });
+  function cancelApproach(){
+    approachSerial++;
+    world?.cancelWalk();
+    if(approaching?.task){unplanTask(approaching.task);save();}
+    approaching=null;delete root.dataset.walking;walkHint=null;
+  }
+  function openWork(target=null){
+    if(STATE.phase==="morning")skipToDecision();
+    if(getActiveEvent()){renderMission();return;}
+    workFilter=target;find("work-screen").hidden=false;setSpeed(0);renderWork();find("work-close").focus();
+  }
+  function approach(target,task,done){
+    const serial=++approachSerial;
+    approaching={target,task};root.dataset.walking=target;
+    find("work-screen").hidden=true;
+    walkHint={key:"field.walking",vars:{place:copy("ui.objects."+target)}};
+    const arrive=()=>{
+      if(serial!==approachSerial||screen!=="mission"||STATE.status!=="playing")return;
+      approaching=null;delete root.dataset.walking;walkHint=null;
+      if(getActiveEvent()){if(task){unplanTask(task);save();}renderMission();return;}
+      done();renderMission();
+    };
+    world?.setPaused(matchMedia("(orientation: portrait)").matches);
+    if(!world||!world.walkTo(target,arrive))arrive();
+    renderMission();
+  }
+  function startField(key){
+    if(field.isOpen)return;
+    cancelApproach();
+    if(STATE.phase==="morning")skipToDecision();
+    if(getActiveEvent()||!beginFieldTask(key)){renderMission();return;}
+    fieldBefore=fieldReadings();
+    approach(CONFIG.simulation.tasks[key].target,key,()=>{
+      world?.setPaused(true);field.open(key);
+    });
+  }
+  function recommendation(){
+    if(!STATE.sim)return null;
+    const pending=Object.keys(STATE.sim.interactive??{}).find(k=>STATE.sim.plan.includes(k));if(pending)return pending;
+    const order=["inspectArray","clean","panel","cable","inspectAir","co2","inspect","seal","findLeak","isolate","pipe","pumpTest",
+      "powerTest","airTest","inspectAntenna","radio","actuator","align","debris","route","beacon","lander","depart","inspectFarm","lights","nutrients","inspectHeat","insulation","roverDiag","roverFix"];
+    for(const key of order){
+      const rule=CONFIG.simulation.tasks[key];
+      if(!rule||(!rule.repeat&&STATE.sim.done[key])||STATE.sim.plan.includes(key))continue;
+      if(key==="clean"&&!STATE.panels.dusty)continue;
+      if(key==="panel"&&!STATE.panels.broken)continue;
+      if(key==="depart"&&STATE.sol<CONFIG.simulation.evacuationFrom)continue;
+      if((rule.requires??[]).some(k=>!STATE.sim.done[k]))continue;
+      if(STATE.phase==="morning"||taskAvailable(key))return key;
+    }
+    return null;
+  }
+  listen("field-next",()=>{
+    if(["evening","night"].includes(STATE.phase)){reviewSol();renderMission();return;}
+    const key=recommendation();if(key)startField(key);else openWork();
+  });
+  listen("field-cancel-walk",()=>{cancelApproach();renderMission();});
   function node(tag, value = "", cls) {
     const element = document.createElement(tag);
     element.textContent = value;
@@ -211,6 +282,7 @@ export async function mountGame(root) {
 
   // ---------- 3D world, with the SVG scene as a fallback ----------
   const base = find("base");
+  base.addEventListener("click",e=>{if(!world){const id=e.target.closest("[data-object]")?.dataset.object;if(id)pick(id);}});
   root.classList.add("flat");
   // The 3D scene is built after the first paint, so the page loads and the setup shows at once.
   function initWorld() {
@@ -229,16 +301,22 @@ export async function mountGame(root) {
     }
   }
   function pick(id) {
-    if (screen !== "mission") return;
-    world?.focus(id);
+    if (screen !== "mission"||field.isOpen||guide.isOpen) return;
+    cancelApproach();
     picked = OBJECT_SYSTEM[id] ?? null;
-    walkHint = { key: "ui.walk", vars: { place: copy("ui.objects." + id) } };
     sound.play("tap");
+    if(STATE.sim&&STATE.status==="playing"){
+      if(STATE.phase==="morning")skipToDecision();
+      if(!getActiveEvent()&&STATE.phase==="day"){
+        approach(id,null,()=>openWork(id));return;
+      }
+    }
+    world?.focus(id);
     renderMission();
   }
 
   function show(next) {
-    if(next!=="mission")find("work-screen").hidden=true;
+    if(next!=="mission"){cancelApproach();find("work-screen").hidden=true;}
     screen = next;
     menuOpen = false;
     render();
@@ -491,15 +569,17 @@ export async function mountGame(root) {
 
   function renderSystems(event, playing) {
     const blockedSystems=getBlockedSystems();
+    const work=simulationPreview();
     for (const system of CONFIG.systems) {
       const tile = find("system-" + system);
       const locked = !STATE.sim && STATE.sol < CONFIG.unlockSol[system];
       const closedChoice=blockedSystems[system];
       const closedBy=Object.hasOwn(blockedSystems,system);
+      const hoursFull=work && STATE.phase==="day" && work.hours+CONFIG.simulation.labor[system]>work.total;
       tile.classList.toggle("blocked", Boolean(closedBy));
       const reason=tile.querySelector(".why");
-      reason.textContent=closedBy?copy(closedChoice?"story.blockedReason":"story.blocked",{reason:closedChoice?copy("log."+closedChoice):""}):"";
-      reason.hidden=!closedBy;
+      reason.textContent=closedBy?copy(closedChoice?"story.blockedReason":"story.blocked",{reason:closedChoice?copy("log."+closedChoice):""}):hoursFull?copy("sim.reason.hours"):"";
+      reason.hidden=!closedBy&&!hoursFull;
       tile.hidden = !playing;
       tile.classList.toggle("locked", locked);
       tile.classList.toggle("picked", picked === system);
@@ -512,10 +592,10 @@ export async function mountGame(root) {
       for (const button of tile.querySelectorAll("button")) {
         const delta = Number(button.dataset.delta);
         button.setAttribute("aria-label", copy(delta > 0 ? "ui.allocAdd" : "ui.allocRemove", { system: label }));
-        if(closedBy)button.setAttribute("aria-describedby",reason.id);
+        if(closedBy || (delta>0 && hoursFull))button.setAttribute("aria-describedby",reason.id);
         else button.removeAttribute("aria-describedby");
-        button.disabled = Boolean(event) || STATE.phase !== "day" || locked || Boolean(closedBy) ||
-          (delta > 0 ? STATE.cubes === 0 || STATE.alloc[system] >= CONFIG.maxAlloc[system] : STATE.alloc[system] === 0);
+        button.disabled = Boolean(approaching) || Boolean(event) || STATE.phase !== "day" || locked || Boolean(closedBy) ||
+          (delta > 0 ? hoursFull || STATE.cubes === 0 || STATE.alloc[system] >= CONFIG.maxAlloc[system] : STATE.alloc[system] === 0);
       }
     }
   }
@@ -550,8 +630,14 @@ export async function mountGame(root) {
     const delay=missionSnapshot(STATE.sol,CONFIG.missionSols).delayMin.toFixed(1);
     find("work-reply").textContent=sim.reply?copy("sim.request",{sent:sim.reply.sentSol,received:sim.reply.receivedSol,min:delay})+" "+copy(sim.reply.stale?"sim.stale":"sim.fresh"):copy("sim.delay",{min:delay});
     find("work-draw").disabled=STATE.phase!=="day" || !sim.battery || Boolean(getActiveEvent()) || STATE.status!=="playing";
-    const key=lang+JSON.stringify([getActiveEvent()?.id,STATE.sol,STATE.phase,STATE.cubes,STATE.alloc,STATE.oxygen,STATE.fatigue,STATE.panels,STATE.status,sim]);
+    const key=lang+JSON.stringify([workFilter,getActiveEvent()?.id,STATE.sol,STATE.phase,STATE.cubes,STATE.alloc,STATE.oxygen,STATE.fatigue,STATE.panels,STATE.status,sim]);
     if(!changed("work",key))return;
+    const filters=find("work-filter");filters.replaceChildren();filters.setAttribute("aria-label",copy("field.choose"));
+    for(const id of [null,...new Set(Object.values(CONFIG.simulation.tasks).map(r=>r.target))]){
+      const b=node("button",id?copy("ui.objects."+id):copy("field.all"));b.type="button";b.dataset.filter=id??"all";b.setAttribute("aria-pressed",String(workFilter===id));
+      b.addEventListener("click",()=>{workFilter=id;renderWork();});filters.append(b);
+    }
+    find("work-selection").textContent=workFilter?copy("field.atObject",{place:copy("ui.objects."+workFilter)}):copy("field.chooseHint");
     const tasks=find("work-tasks");tasks.replaceChildren();
     const steps=CONFIG.simulation.tasks;
     for(const mission of missionBoard().concat([{id:"supplies",priority:"optional",status:"AVAILABLE"},{id:"health",priority:"optional",status:"AVAILABLE"}])){
@@ -562,14 +648,15 @@ export async function mountGame(root) {
       group.append(head,node("p",copy("sim.missionWhy."+mission.id),"mission-why"));
       const list=node("div","","work-steps");
       for(const [id,rule]of Object.entries(steps)){
-        if(rule.mission!==mission.id)continue;
+        if(rule.mission!==mission.id||(workFilter&&rule.target!==workFilter))continue;
         const queued=sim.plan.includes(id), done=!rule.repeat&&sim.done[id], reason=queued||done?"":stepReason(id);
         const button=node("button","","work-job"+(queued?" reserved":"")+(done?" done":""));
         button.type="button";button.disabled=!queued&&Boolean(reason||done);
         button.setAttribute("aria-pressed",String(queued));
         button.append(node("b",(done?"✓ ":"")+copy("sim.tasks."+id)),node("span",copy("sim.why."+id)),
-          node("small",copy("sim.cost",rule)),node("em",queued?copy("sim.pending"):done?copy("sim.doneStep"):reason));
+          node("small",copy("sim.cost",rule)),node("em",queued?copy(sim.interactive?.[id]?"field.resume":"sim.pending"):done?copy("sim.doneStep"):reason));
         button.addEventListener("click",()=>{
+          if((!queued||sim.interactive?.[id])&&!['rest','robot'].includes(id)){startField(id);return;}
           const ok=queued?unplanTask(id):planTask(id);
           find("work-error").textContent=ok?"":stepReason(id)||copy("sim.failed");
           if(ok&&!queued)world?.focus(rule.target);
@@ -577,8 +664,7 @@ export async function mountGame(root) {
         });
         list.append(button);
       }
-      group.append(list);
-      tasks.append(group);
+      if(list.children.length){group.append(list);tasks.append(group);}
     }
     // Mission notebook: what Mark repaired and what Beep explained.
     const notebook=find("work-notebook");notebook.replaceChildren(node("summary",copy("sim.notebook")));
@@ -590,7 +676,7 @@ export async function mountGame(root) {
       notebook.append(note);
     }
   }
-  listen("work-open",()=>{find("work-screen").hidden=false;setSpeed(0);renderWork();find("work-close").focus();});
+  listen("work-open",()=>{cancelApproach();openWork();renderMission();});
   listen("work-close",()=>{find("work-screen").hidden=true;find("work-open").focus();});
   listen("work-draw",()=>{drawBattery();renderMission();});
 
@@ -694,7 +780,7 @@ export async function mountGame(root) {
     root.dataset.weather = STATE.weather;
 
     if(STATE.sim){
-      if(STATE.sol===1 && !STATE.sim.inspected)find("bip").textContent=copy("sim.intro");
+      if(STATE.sol===1 && !STATE.sim.inspected)find("bip").textContent=copy("field.opening");
       const notes=STATE.sim.notes.filter(n=>!n.startsWith("done:"));
       if(notes.length)find("warning").textContent=notes.map(n=>copy("sim.notes."+n)).join(" ");
       const lesson=STATE.sim.lastPlan.findLast?.(k=>k!=="rest"&&k!=="robot");
@@ -702,13 +788,24 @@ export async function mountGame(root) {
       if(event)find("work-screen").hidden=true;
       renderWork();
     }
+    find("field-objective").hidden=!STATE.sim||!playing;
+    if(STATE.sim&&playing){
+      const next=recommendation();
+      find("field-goal").textContent=next?copy("field.next")+" · "+copy("sim.tasks."+next):copy("field.endDay");
+      find("field-next").textContent=["evening","night"].includes(STATE.phase)?copy("game.advance"):next?copy("sim.tasks."+next):copy("sim.open");
+      find("field-next").disabled=Boolean(event)||field.isOpen||Boolean(approaching);
+      if(approaching)find("field-goal").textContent=copy("field.walking",{place:copy("ui.objects."+approaching.target)});
+      text("field-cancel-walk","field.cancelWalk");
+      find("field-cancel-walk").hidden=!approaching;
+      find("work-open").disabled=Boolean(event)||field.isOpen;
+    }
     find("work-open").hidden=!STATE.sim || !playing;
-    text("work-open","sim.open");
+    text("work-open","field.choose");
     renderEvent(event);
     renderSystems(event, playing);
     for (const [id, key] of Object.entries(actionKeys)) text(id, key);
     find("next").disabled = !playing || STATE.phase !== "morning" || Boolean(event);
-    find("end").disabled = !playing || STATE.phase !== "day" || Boolean(event);
+    find("end").disabled = !playing || STATE.phase !== "day" || Boolean(event)||Boolean(approaching);
     find("advance").disabled = !playing || !["evening", "night"].includes(STATE.phase) || Boolean(event);
     find("next").hidden = playing && STATE.phase !== "morning";
     find("end").hidden = playing && STATE.phase !== "day";
@@ -727,7 +824,7 @@ export async function mountGame(root) {
   }
 
   function renderSetup() {
-    text("premise", "sim.premise");
+    text("premise", "field.opening");
     text("site-label", "story.site");
     text("difficulty-label", "story.difficulty");
     text("start", "story.start");
@@ -888,8 +985,8 @@ export async function mountGame(root) {
   }
   listen("intro-next",()=>intro?.next());listen("intro-skip",()=>intro?.skip());
   listen("watch",watchIntro);
-  listen("guide-open", () => { menuOpen = false; render(); guide.open(find("menu")); });
-  listen("help", () => { menuOpen = false; render(); guide.open(find("help")); });
+  listen("guide-open", () => { cancelApproach();menuOpen = false; render(); guide.open(find("menu")); });
+  listen("help", () => { cancelApproach();menuOpen = false; render(); guide.open(find("help")); });
   listen("guide-offer-open", () => guide.open(find("start")));
   listen("guide-offer-dismiss", () => { offerGuide = false; markGuideSeen(); render(); find("start").focus(); });
   listen("mission-menu",()=>{if(!demoRunning)save();menuOpen=false;find("work-screen").hidden=true;show("setup");});
@@ -897,7 +994,7 @@ export async function mountGame(root) {
   listen("demo-exit",()=>{menuOpen=false;demoRunning=false;if(hasSave())continueMission();else show("setup");});
   listen("language", () => { lang = lang === "en" ? "ru" : "en"; render(); });
   listen("sound", () => { sound.toggle(); render(); });
-  listen("menu", () => { menuOpen = !menuOpen; render(); });
+  listen("menu", () => { cancelApproach();menuOpen = !menuOpen; render(); });
   for (const id of ["facts", "teachers", "sources"]) listen(id, () => openReading(id));
   listen("back", () => {
     show(returnScreen ?? "setup");
@@ -920,14 +1017,14 @@ export async function mountGame(root) {
   for (const button of find("speed").querySelectorAll("[data-speed]")) {
     button.addEventListener("click", () => { setSpeed(Number(button.dataset.speed)); sound.play("tap"); renderMission(); });
   }
-  listen("orbit", () => world?.travel(!world.orbital));
+  listen("orbit", () => {cancelApproach();world?.travel(!world.orbital);renderMission();});
   listen("to-base", () => world?.travel(false));
   for (const f of ["mars", "earth", "system", "ship"]) listen("focus-" + f, () => { world?.focusSpace(f); sound.play("tap"); render(); });
   listen("zoom-in", () => world?.zoom(1.18));
   listen("zoom-out", () => world?.zoom(1 / 1.18));
   listen("home", () => world?.home());
   document.addEventListener("keydown", (e) => {
-    if(e.key==="Escape")find("work-screen").hidden=true;
+    if(e.key==="Escape"){cancelApproach();find("work-screen").hidden=true;renderMission();}
     if (e.key === "Escape" && ["facts", "teachers", "sources"].includes(screen)) find("back").click();
     if (e.key === " " && screen === "mission" && e.target === document.body && STATE?.status === "playing") {
       e.preventDefault();
@@ -939,7 +1036,7 @@ export async function mountGame(root) {
   // ---------- real-time loop: the engine runs the sol, the UI redraws the HUD ----------
   // Landscape only: in portrait the scene and the mission (including the storm timer) wait.
   const portrait = matchMedia("(orientation: portrait)");
-  const applyOrientation = () => { root.classList.toggle("portrait", portrait.matches); world?.setPaused(portrait.matches); };
+  const applyOrientation = () => { root.classList.toggle("portrait", portrait.matches); world?.setPaused(portrait.matches||field.isOpen); };
   portrait.addEventListener("change", applyOrientation);
   applyOrientation();
   let lastSecond = null;
@@ -947,7 +1044,7 @@ export async function mountGame(root) {
     if (lastTick != null && screen === "mission" && STATE?.status === "playing" && !portrait.matches) {
       const event = getActiveEvent();
       const previousPhase=STATE.phase;
-      if(find("work-screen").hidden&&find("intro-screen").hidden&&!guide.isOpen)tick(Math.min(250, now - lastTick));
+      if(find("work-screen").hidden&&find("intro-screen").hidden&&!guide.isOpen&&!field.isOpen&&!approaching)tick(Math.min(250, now - lastTick));
       const current = getActiveEvent();
       if (event && current?.id !== event.id && event.remainingMs != null) setEventResponse(event, event.defaultChoice);
       if (current?.remainingMs != null) {
@@ -966,12 +1063,7 @@ export async function mountGame(root) {
   }
 
   render();
-  // A brand-new player (no guide status and no saved mission) does not know the controls yet:
-  // the guide opens at once. Skip, Escape or finishing it closes it for good.
-  if (offerGuide && !hasSave()) {
-    guide.open(find("start"));
-    find("guide-offer").hidden = true;
-  }
+  // The first actionable job is on the base. The detailed manual stays behind "?".
   requestAnimationFrame(frame);
   setTimeout(initWorld, 50);
 }

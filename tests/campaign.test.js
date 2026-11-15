@@ -193,3 +193,14 @@ test("balance: a sensible player is rescued in 40-60% of engineer games, random 
   assert.ok(rate("sensible", "cadet") > engineer, "cadet is easier");
   assert.ok(rate("random", "engineer") < 10, "random play rarely wins");
 });
+
+test("fatigue limits system work as well as queued steps, while air and refunds remain available", () => {
+  newGame({simulation:true,seed:0});skipToDecision();
+  STATE.fatigue=CONFIG.simulation.fatigueHours.at(-1);
+  for(const key of ["inspectArray","inspectAir","findLeak","inspect"])assert.equal(planTask(key),true);
+  assert.equal(allocate("farm",1),false);
+  assert.equal(allocate("air",1),true);
+  assert.equal(unplanTask("inspect"),true);
+  assert.equal(allocate("farm",1),true);
+  assert.equal(allocate("farm",-1),true);
+});
