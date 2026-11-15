@@ -44,6 +44,7 @@ export const TEXT = {
       },
     },
     intro: {
+      videoTitle: "One Sol to Rescue · Prologue", playVideo: "Play", pauseVideo: "Pause", muteVideo: "Mute", unmuteVideo: "Sound on", playPrompt: "Press Play to start the film.", videoError: "The film could not play in this browser. Skip to continue the mission.",
       art: { frame1: "Zarya base", frame2: "Dust storm warning", frame3: "Mark loses contact", frame4: "Tulpar lifts off", frame5: "Beep finds Mark" },
       play: "Watch intro",
       f1: "Sol 18. The crew is at work at Zarya base.\nBotanist Mark Yermekov checks the far sensors.",
@@ -309,6 +310,7 @@ export const TEXT = {
       },
     },
     intro: {
+      videoTitle: "Один сол до помощи · Пролог", playVideo: "Смотреть", pauseVideo: "Пауза", muteVideo: "Без звука", unmuteVideo: "Включить звук", playPrompt: "Нажми «Смотреть», чтобы запустить видео.", videoError: "Браузер не смог воспроизвести видео. Нажми «Пропустить», чтобы продолжить миссию.",
       art: { frame1: "База «Заря»", frame2: "Предупреждение о буре", frame3: "Марк теряет связь", frame4: "Взлёт «Тулпара»", frame5: "Бип находит Марка" },
       play: "Смотреть интро",
       f1: "Сол 18. На базе «Заря» команда за работой.\nБотаник Марк Ермеков проверяет дальние датчики.",

@@ -15,6 +15,7 @@ export async function renderIndex() {
     platform: "browser",
     format: "iife",
     bundle: true,
+    loader: { ".mp4": "dataurl" },
     minifyWhitespace: true,
     minifySyntax: true,
     write: false,
