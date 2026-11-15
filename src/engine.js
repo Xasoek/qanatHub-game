@@ -437,7 +437,11 @@ function applyChoice(event, choice) {
       break;
     case "dustyPanels":
       if (choice === "clean") {
-        block(["farm", "repair"], logEntry(key));
+        // Cleaning takes the whole sol and removes the dust from every panel,
+        // including dust left by earlier storms. Full power returns tomorrow.
+        const cleaned = STATE.panels.dusty;
+        STATE.panels.dusty = 0;
+        block(["farm", "repair"], logEntry(key, { panels: -cleaned }));
       } else {
         const panels = STATE.panels.total - downPanels() > 0 ? 1 : 0;
         STATE.panels.dusty += panels;

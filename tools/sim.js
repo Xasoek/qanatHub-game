@@ -2,6 +2,7 @@
 // Usage: npm run sim -- 1000
 import { fileURLToPath } from "node:url";
 import { CONFIG } from "../src/config.js";
+import { NASA_ARCHIVE } from "../src/data.js";
 import {
   STATE, allocate, endSol, getActiveEvent, getEndReport, newGame, resolveEvent, skipToDecision,
 } from "../src/engine.js";
@@ -106,9 +107,13 @@ function resolveAll(player, seed) {
 }
 
 /** Plays one mission to the end and returns the engine's end report. */
-export function playMission({ strategy = "smart", seed = 0, site, difficulty, presentation } = {}) {
+// The game starts with the bundled NASA archive, so the balance is measured with it too.
+const ARCHIVE_DATA = { mode: "archive", flares: NASA_ARCHIVE };
+
+export function playMission({ strategy = "smart", seed = 0, site, difficulty, presentation,
+  solarData = ARCHIVE_DATA } = {}) {
   const player = STRATEGIES[strategy](seed);
-  newGame({ seed, site, difficulty, presentation });
+  newGame({ seed, site, difficulty, presentation, solarData });
   for (let step = 0; STATE.status === "playing"; step++) {
     if (step > MAX_STEPS) throw new Error(`Mission did not finish (seed ${seed})`);
     if (STATE.phase !== "day") skipToDecision();
@@ -161,7 +166,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       }
     }
   }
-  console.log(`${count} missions per row. Target for engineer: smart 40-60%, random below 10%.`);
+  console.log(`${count} missions per row with the NASA archive flares. Target for engineer: smart 40-60%, random below 10%.`);
   console.table(rows);
 
   // Presentation mode: how often the demo reaches the rescue and how long it runs at x4.
