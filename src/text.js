@@ -1108,3 +1108,132 @@ for(const language of ["en","ru"]){
 
 Object.assign(TEXT.en.ui,{missionMenu:"Mission setup",demoStart:"Presentation · Act 3",demoExit:"Return to my mission",savedSolar:"Saved NASA solar snapshot"});
 Object.assign(TEXT.ru.ui,{missionMenu:"Настройка миссии",demoStart:"Презентация · Акт 3",demoExit:"Вернуться в мою миссию",savedSolar:"Сохранённый снимок данных NASA"});
+
+// "How to play" survival guide (src/guide.js). It describes only mechanics that exist:
+// numbers in {braces} come from CONFIG and button names from the keys above.
+Object.assign(TEXT.en, { guide: {
+  open: "How to play",
+  title: "Survival guide",
+  progress: "{n}/{total}",
+  otherLanguage: "Русский",
+  back: "Back",
+  next: "Next",
+  skip: "Skip",
+  finish: "Let’s go!",
+  tipLabel: "Beep’s tip:",
+  offer: {
+    text: "First time on Mars? Beep can show you how to play in 1–2 minutes.",
+    open: "Show me how",
+    dismiss: "No thanks",
+  },
+  steps: {
+    mission: {
+      title: "Your mission",
+      l1: "You are Mark, a botanist. After a dust storm, you are alone at a base on Mars.",
+      l2: "The rescue ship {ship} is flying from Earth. It reaches Mars on sol {sols}.",
+      l3: "A sol is one day on Mars. Keep yourself and the base going until then!",
+      tip: "Hi, I’m Beep, your robot helper! My card shows a hint and a task for every sol.",
+    },
+    base: {
+      title: "Your base",
+      l1: "Habitat, greenhouse, workshop, antenna, radiation shelter, solar panels and a NASA rover. Tap a building to look at it.",
+      l2: "The top bar shows the sol, sols left until rescue, oxygen, food and energy.",
+      l3: "“{sensors}” show damage, broken or dusty panels, the crop and how tired Mark is.",
+      tip: "A bar turns red when less than 3 sols of it are left. Act fast!",
+    },
+    resources: {
+      title: "Your resources",
+      l1: "Oxygen: sols of air left. Power the {air}: it removes CO₂, so stored oxygen lasts. A leaking airlock and a spent CO₂ cartridge waste air.",
+      l2: "Food: Mark eats 1 sol of food every sol. The {farm} and supply crates add more.",
+      l3: "Energy: solar panels make it every sol, less in dust and storms. Leftovers charge the battery (up to {battery}) for the night.",
+      tip: "If oxygen or food runs out, the mission ends. Watch both bars!",
+    },
+    plan: {
+      title: "Plan your sol",
+      l1: "Press “{start}”. Give energy to the systems with + and −.",
+      l2: "Open “{plan}”. Mark has {hours} work hours a sol. Jobs take hours, and some need energy, air or spare parts. Most systems use hours too.",
+      l3: "Some jobs open only after another: first inspect the airlock, then seal it.",
+      l4: "Pause or run time at ×1, ×2, ×4. When the plan is ready, press “{end}”, then “{advance}”.",
+      tip: "Air and the leaking airlock come first. Science can wait.",
+    },
+    survive: {
+      title: "Repair and survive",
+      l1: "Open the missions: power, life support, the airlock, water and the link with Earth come first. Each repair starts with a check.",
+      l2: "Trips to supply crates bring food but cost air and time. Beep can inspect a fault for Mark.",
+      l3: "Surprises happen: dust storms (decide in {storm} seconds, {stormCadet} on Cadet), solar flares, a broken scrubber, cold nights. Every choice has a price.",
+      l4: "An empty battery at night makes Mark tired, and you get less energy. At 100% damage the mission ends.",
+      tip: "A temporary patch lasts only {patch} sols. Replace the seal when you have a spare part.",
+    },
+    rescue: {
+      title: "Reach the rescue",
+      l1: "{ship} arrives on sol {sols}. To reach it, finish 3 rescue checks:",
+      l2: "turn on the beacon (needs the basic link), survey the route (clear the debris first), service the return vehicle (after the power test).",
+      l3: "From sol {depart}, choose “{leave}”. The airlock must hold (a new seal or a patch that still holds) and the antenna cable must be repaired.",
+      l4: "Not ready in time? Another crew still saves Mark, and Beep shows your costliest choices.",
+      tip: "Start the rescue checks early. Don’t leave them for the last sols!",
+    },
+  },
+} });
+Object.assign(TEXT.ru, { guide: {
+  open: "Как играть",
+  title: "Как выжить",
+  progress: "{n}/{total}",
+  otherLanguage: "English",
+  back: "Назад",
+  next: "Далее",
+  skip: "Пропустить",
+  finish: "Вперёд!",
+  tipLabel: "Совет Бипа:",
+  offer: {
+    text: "Впервые на Марсе? Бип за 1–2 минуты покажет, как играть.",
+    open: "Покажи",
+    dismiss: "Не нужно",
+  },
+  steps: {
+    mission: {
+      title: "Твоя миссия",
+      l1: "Ты — Марк, ботаник. После пылевой бури ты остался один на базе на Марсе.",
+      l2: "С Земли летит спасательный корабль «{ship}». Он прилетит к Марсу на сол {sols}.",
+      l3: "Сол — это марсианские сутки. Продержись и сохрани базу до прилёта!",
+      tip: "Привет, я Бип, твой робот-помощник! В моей карточке каждый сол есть подсказка и задача.",
+    },
+    base: {
+      title: "Твоя база",
+      l1: "Жилой модуль, теплица, мастерская, антенна, радиационное убежище, солнечные панели и ровер NASA. Нажми на здание, чтобы рассмотреть его.",
+      l2: "Вверху видны сол, сколько солов до помощи, кислород, еда и энергия.",
+      l3: "«{sensors}» показывают урон, сломанные и пыльные панели, урожай и усталость Марка.",
+      tip: "Полоска краснеет, когда запаса осталось меньше 3 солов. Действуй быстро!",
+    },
+    resources: {
+      title: "Твои запасы",
+      l1: "Кислород — на сколько солов хватит воздуха. Дай энергию системе «{air}»: она убирает CO₂, и запас кислорода держится дольше. Шлюз с утечкой и исчерпанный патрон CO₂ тратят воздух.",
+      l2: "Еда — Марк съедает 1 сол еды за сол. Её добавляют «{farm}» и ящики с припасами.",
+      l3: "Энергия — солнечные панели дают её каждый сол, меньше при пыли и буре. Остаток заряжает аккумулятор (до {battery}) на ночь.",
+      tip: "Если кончится кислород или еда, миссия закончится. Следи за обеими полосками!",
+    },
+    plan: {
+      title: "Планируй сол",
+      l1: "Нажми «{start}». Дай энергию системам кнопками + и −.",
+      l2: "Открой «{plan}». У Марка {hours} рабочих часов в сол. Работы занимают часы, некоторым нужны энергия, воздух или запчасти. Большинство систем тоже занимает часы.",
+      l3: "Некоторые работы открываются только после других: сначала осмотри шлюз, потом загерметизируй.",
+      l4: "Останови время паузой или включи ×1, ×2, ×4. Когда план готов, нажми «{end}», потом «{advance}».",
+      tip: "Сначала воздух и шлюз с утечкой. Наука подождёт.",
+    },
+    survive: {
+      title: "Чини и выживай",
+      l1: "Открой миссии: сначала энергия, жизнеобеспечение, шлюз, вода и связь с Землёй. Каждый ремонт начинается с проверки.",
+      l2: "Вылазки за ящиками дают еду, но тратят воздух и время. Бип может осмотреть поломку вместо Марка.",
+      l3: "Бывают неожиданности: пылевая буря (решай за {storm} секунд, на «Курсанте» за {stormCadet}), солнечная вспышка, поломка очистителя, холодная ночь. У каждого выбора есть цена.",
+      l4: "Если ночью сядет аккумулятор, Марк устанет, и энергии станет меньше. При уроне 100% миссия закончится.",
+      tip: "Временная заплата держится всего {patch} сола. Замени уплотнение, когда будет запчасть.",
+    },
+    rescue: {
+      title: "Дождись спасения",
+      l1: "«{ship}» прилетит на сол {sols}. Чтобы добраться до него, пройди 3 проверки спасения:",
+      l2: "включи маяк (нужна базовая связь), обследуй маршрут (сначала убери обломки), обслужи возвратный аппарат (после проверки выработки).",
+      l3: "С сола {depart} выбери «{leave}». Шлюз должен держать (новое уплотнение или ещё действующая заплата), а кабель антенны — быть починен.",
+      l4: "Не успел? Марка всё равно спасёт другая команда, а Бип покажет самые дорогие решения.",
+      tip: "Начинай проверки спасения заранее, а не в последние солы!",
+    },
+  },
+} });
