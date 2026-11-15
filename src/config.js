@@ -3,26 +3,86 @@
 export const CONFIG = {
   missionSols: 30,
   simulation: {
-    generationBonus: 2, hours: 6, batteryCapacity: 6, batteryInitial: 2, drawLimit: 2,
-    startingDusty: 2, startingDamage: 32, startingBroken: 1, sealLoss: .25,
-    patchSols: 3, patchDamageReturn: 10, spares: 4, nightBase: 1,
+    // Game design, not physics: the Arcadia base was built with a larger array to pay for heating.
+    generationBonus: 0, generationBySite: { gale: 0, jezero: 0, arcadia: 1 }, cableBonus: 2, hours: 6, batteryCapacity: 6, batteryInitial: 2, drawLimit: 2,
+    startingDusty: 2, startingDustyBySite: { gale: 2, jezero: 2, arcadia: 1 }, startingDamage: 50, startingBroken: 1, sealLoss: .5,
+    patchSols: 3, patchDamageReturn: 10, spares: 6, nightBase: 1,
     evacuationFrom: 27, evacuationOxygen: .5,
     labor: { air: 0, farm: 1, repair: .5, heat: 0, comms: .5, science: 1 },
+    // Engineering campaign (IMPLEMENTATION_PLAN.md). Hours, energy units and water in
+    // "sols of reserve" are game units, not measured hardware values.
+    stormAirUsed: 5, // stored air the evacuation storm already used (sols), set by balancing
+    co2Loss: .5, // air lost per sol while Mark vents the cabin because the CO2 cartridge is spent
+    damagedLightsMaxSteps: 1, // greenhouse growth per sol until the lamps are repaired
+    damagedInsulationHeat: 1, // extra night energy until the insulation is repaired
+    fatigueHours: [3, 5], // each threshold reached removes one work hour
+    // Water in sols of reserve. Until the pump test the recycler is off; after it the processor
+    // returns most used water (the ISS recovers about 98%), shown as "recovery" per sol.
+    water: { start: 6, capacity: 8, use: .25, leak: 1, isolatedLeak: .5, farmStep: .25, recovery: .75,
+      dehydrationFatigue: 1 },
+    crateParts: { near: 1, far: 2 },
+    salvageParts: 1, // parts Mark salvages from broken equipment while clearing debris
     tasks: {
-      inspect: { hours: 1, cubes: 0, parts: 0, oxygen: 0, target: "air" },
-      patch: { hours: 1, cubes: 1, parts: 0, oxygen: 0, target: "air" },
-      seal: { hours: 2, cubes: 1, parts: 1, oxygen: 0, target: "air" },
-      panel: { hours: 2, cubes: 1, parts: 1, oxygen: .25, target: "panels" },
-      clean: { hours: 1, cubes: 0, parts: 0, oxygen: .25, target: "panels" },
-      radio: { hours: 2, cubes: 1, parts: 1, oxygen: 0, target: "comms" },
-      debris: { hours: 1, cubes: 0, parts: 0, oxygen: .25, target: "repair" },
-      near: { hours: 2, cubes: 1, parts: 0, oxygen: .5, food: 2, target: "science" },
-      far: { hours: 3, cubes: 1, parts: 0, oxygen: 1, food: 4, target: "science" },
-      robot: { hours: .5, cubes: 1, parts: 0, oxygen: 0, target: "science" },
-      beacon: { hours: 1, cubes: 1, parts: 0, oxygen: 0, target: "comms" },
-      route: { hours: 2, cubes: 0, parts: 0, oxygen: .5, target: "science" },
-      lander: { hours: 2, cubes: 1, parts: 1, oxygen: 0, target: "repair" },
-      depart: { hours: 1, cubes: 0, parts: 0, oxygen: .5, target: "science" },
+      // Power
+      inspectArray: { hours: 1, cubes: 0, parts: 0, oxygen: .25, target: "panels", mission: "power" },
+      cable: { hours: 2, cubes: 1, parts: 1, oxygen: .25, target: "panels", mission: "power", requires: ["inspectArray"] },
+      panel: { hours: 2, cubes: 1, parts: 1, oxygen: .25, target: "panels", mission: "power", requires: ["inspectArray"], repeat: true },
+      clean: { hours: 1, cubes: 0, parts: 0, oxygen: .25, target: "panels", mission: "power", requires: ["inspectArray"], repeat: true },
+      powerTest: { hours: 1, cubes: 0, parts: 0, oxygen: 0, target: "panels", mission: "power", requires: ["cable"] },
+      // Life support: CO2 removal is separate from the oxygen supply
+      inspectAir: { hours: 1, cubes: 0, parts: 0, oxygen: 0, target: "air", mission: "life" },
+      co2: { hours: 1, cubes: 1, parts: 1, oxygen: 0, target: "air", mission: "life", requires: ["inspectAir"] },
+      airTest: { hours: 1, cubes: 0, parts: 0, oxygen: 0, target: "air", mission: "life", requires: ["co2"] },
+      // Pressure leak in the airlock seal
+      inspect: { hours: 1, cubes: 0, parts: 0, oxygen: 0, target: "air", mission: "pressure" },
+      patch: { hours: 1, cubes: 1, parts: 0, oxygen: 0, target: "air", mission: "pressure", requires: ["inspect"], repeat: true },
+      seal: { hours: 2, cubes: 1, parts: 1, oxygen: 0, target: "air", mission: "pressure", requires: ["inspect"] },
+      // Water
+      findLeak: { hours: 1, cubes: 0, parts: 0, oxygen: 0, target: "air", mission: "water" },
+      isolate: { hours: 1, cubes: 0, parts: 0, oxygen: 0, target: "air", mission: "water", requires: ["findLeak"] },
+      pipe: { hours: 2, cubes: 1, parts: 1, oxygen: 0, target: "air", mission: "water", requires: ["isolate"] },
+      pumpTest: { hours: 1, cubes: 1, parts: 0, oxygen: 0, target: "air", mission: "water", requires: ["pipe"] },
+      // Communication: beacon -> basic -> full
+      inspectAntenna: { hours: 1, cubes: 0, parts: 0, oxygen: .25, target: "comms", mission: "comms" },
+      radio: { hours: 2, cubes: 1, parts: 1, oxygen: .25, target: "comms", mission: "comms", requires: ["inspectAntenna"] },
+      actuator: { hours: 2, cubes: 1, parts: 1, oxygen: .25, target: "comms", mission: "comms", requires: ["radio"] },
+      align: { hours: 2, cubes: 1, parts: 0, oxygen: .25, target: "comms", mission: "comms", requires: ["actuator"] },
+      // Greenhouse (optional)
+      inspectFarm: { hours: 1, cubes: 0, parts: 0, oxygen: 0, target: "farm", mission: "farm" },
+      lights: { hours: 1, cubes: 1, parts: 1, oxygen: 0, target: "farm", mission: "farm", requires: ["inspectFarm"] },
+      nutrients: { hours: 1, cubes: 0, parts: 0, oxygen: 0, target: "farm", mission: "farm", requires: ["lights"] },
+      // Thermal control (optional)
+      inspectHeat: { hours: 1, cubes: 0, parts: 0, oxygen: 0, target: "heat", mission: "thermal" },
+      insulation: { hours: 2, cubes: 1, parts: 1, oxygen: 0, target: "heat", mission: "thermal", requires: ["inspectHeat"] },
+      // Rover (optional)
+      roverDiag: { hours: 1, cubes: 0, parts: 0, oxygen: .25, target: "science", mission: "rover" },
+      roverFix: { hours: 2, cubes: 1, parts: 1, oxygen: .25, target: "science", mission: "rover", requires: ["roverDiag"] },
+      // Supplies and Mark's health
+      near: { hours: 2, cubes: 1, parts: 0, oxygen: .5, food: 2, target: "science", mission: "supplies" },
+      far: { hours: 3, cubes: 1, parts: 0, oxygen: 1, food: 4, target: "science", mission: "supplies", requires: ["roverFix"] },
+      robot: { hours: .5, cubes: 1, parts: 0, oxygen: 0, target: "science", mission: "supplies" },
+      rest: { hours: 2, cubes: 0, parts: 0, oxygen: 0, target: "air", mission: "health", repeat: true },
+      // Rescue preparation
+      debris: { hours: 1, cubes: 0, parts: 0, oxygen: .25, target: "repair", mission: "rescue" },
+      route: { hours: 2, cubes: 0, parts: 0, oxygen: .5, target: "science", mission: "rescue", requires: ["debris"] },
+      beacon: { hours: 1, cubes: 1, parts: 0, oxygen: 0, target: "comms", mission: "rescue", requires: ["actuator"] },
+      // The return vehicle carries its own spares, so the rescue path never waits for base stock.
+      lander: { hours: 2, cubes: 1, parts: 0, oxygen: 0, target: "repair", mission: "rescue", requires: ["powerTest"] },
+      // The airlock must hold until departure: a permanent seal or a patch that is still holding.
+      depart: { hours: 1, cubes: 0, parts: 0, oxygen: .5, target: "science", mission: "rescue",
+        requires: ["inspect", "radio", "beacon", "route", "lander"] },
+    },
+    // goal: the step that completes the mission. Critical missions are on the rescue path.
+    missions: {
+      power: { priority: "critical", goal: "powerTest" },
+      life: { priority: "critical", goal: "airTest" },
+      pressure: { priority: "critical", goal: "seal" },
+      water: { priority: "critical", goal: "pumpTest" },
+      comms: { priority: "critical", goal: "align" },
+      rescue: { priority: "critical", goal: "depart" },
+      farm: { priority: "optional", goal: "nutrients" },
+      thermal: { priority: "optional", goal: "insulation" },
+      rover: { priority: "optional", goal: "roverFix" },
     },
   },
   // 1 sol = 2 minutes at x1 (TZ 3.1).

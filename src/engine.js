@@ -1,7 +1,8 @@
 // Role 1: game state, rules, events, delayed consequences and saves.
 // The UI changes the game only through the exported functions.
 import { makeSimulation, labor, planned, canTask, queueTask, cancelTask,
-  startSimulationSol, settleSimulationDay, previewSimulation } from "./simulator.js";
+  startSimulationSol, settleSimulationDay, previewSimulation, airLoss, commsLevel, farmSteps, generationBonus, missionSummary, nightNeed,
+  normalizeSimulation, rescueRating, settleWater, taskBlocker } from "./simulator.js";
 import { CONFIG } from "./config.js";
 
 export let STATE;
@@ -167,8 +168,10 @@ export function newGame({ site = CONFIG.defaults.site, difficulty = CONFIG.defau
     STATE.sim=makeSimulation();
     if (!presentation) {
       STATE.damage=CONFIG.simulation.startingDamage;
+      STATE.oxygen=Math.max(1,STATE.oxygen-CONFIG.simulation.stormAirUsed);
       STATE.panels.broken=CONFIG.simulation.startingBroken;
-      STATE.panels.dusty=CONFIG.simulation.startingDusty;
+      // The storm left more dust at dusty sites (Gale) and less at Arcadia.
+      STATE.panels.dusty=CONFIG.simulation.startingDustyBySite[site] ?? CONFIG.simulation.startingDusty;
     }
     STATE.paused=true;
   }
@@ -188,7 +191,7 @@ function rollWeather() {
 
 function computeCubes() {
   const penalty = CONFIG.cubePenalty;
-  let cubes = CONFIG.cubesByWeather[STATE.weather] + rules().bonusCubes + (STATE.sim?CONFIG.simulation.generationBonus:0);
+  let cubes = CONFIG.cubesByWeather[STATE.weather] + rules().bonusCubes + generationBonus(STATE);
   cubes -= downPanels() * penalty.perDownPanel;
   if (STATE.fatigue >= penalty.fatigueAt) cubes -= penalty.fatigue;
   for (const item of STATE.pending) {
@@ -232,10 +235,11 @@ function deliverForecast() {
 }
 
 function checkReserves() {
-  for (const resource of ["oxygen", "food"]) {
-    const low = STATE[resource] < CONFIG.lowReserveSols;
+  for (const resource of ["oxygen", "food", ...(STATE.sim ? ["water"] : [])]) {
+    const value = resource === "water" ? STATE.sim.water : STATE[resource];
+    const low = value < CONFIG.lowReserveSols;
     if (low && !meta.warned[resource]) {
-      meta.queue.push({ type: "lowReserve", data: { resource, value: STATE[resource] } });
+      meta.queue.push({ type: "lowReserve", data: { resource, value } });
     }
     meta.warned[resource] = low;
   }
@@ -531,7 +535,8 @@ function settleDay() {
   const siteRules = rules();
   const { alloc } = STATE;
   if (STATE.sim) {
-    settleSimulationDay(STATE,meta.blocked.includes("repair"));
+    const levelBefore = settleSimulationDay(STATE,meta.blocked.includes("repair"));
+    queueEarthMessages(levelBefore, commsLevel(STATE));
     for(const key of STATE.sim.lastPlan){
       const rule=CONFIG.simulation.tasks[key];
       logEntry("sim."+key,{cubes:rule.cubes,oxygen:rule.oxygen});
@@ -544,14 +549,8 @@ function settleDay() {
   }
 
   // Air (TZ 3.4): full power stops the loss, partial power halves it.
-  const airLevel = alloc.air >= siteRules.airFullCubes ? 2 : alloc.air > 0 ? 1 : 0;
-  const baseLoss = CONFIG.airUseByCubes[airLevel];
-  const faults = CONFIG.oxygenMultiplier;
-  let factor = 1;
-  if (STATE.scrubberBroken) factor *= faults.scrubberBroken;
-  if (STATE.damage > CONFIG.leakDamage) factor *= faults.leak;
-  let oxygenLoss = factor > 1 ? Math.max(baseLoss, faults.minLossWhenFaulty) * factor : baseLoss;
-  if (STATE.sim?.sealBroken && !STATE.sim.patchUntil) oxygenLoss+=CONFIG.simulation.sealLoss;
+  // One shared rule for the engine and the work preview (simulator.js airLoss).
+  const { base: baseLoss, total: oxygenLoss } = airLoss(STATE, alloc, []);
   if (baseLoss > 0) logEntry("air.low", { oxygen: baseLoss });
   if (STATE.scrubberBroken && oxygenLoss > baseLoss) {
     addEffect(meta.scrubberLog, "scrubberBroken", { oxygen: round(oxygenLoss - baseLoss) });
@@ -562,7 +561,8 @@ function settleDay() {
   if (unlocked("farm")) {
     const crop = CONFIG.crops[STATE.crop.type];
     const farmBlocked = meta.blocked.includes("farm");
-    const steps = farmBlocked ? 0 : alloc.farm * CONFIG.farm.stepPerCube;
+    const steps = farmBlocked ? 0 : farmSteps(STATE, alloc.farm);
+    settleWater(STATE, steps);
     if (steps > 0) {
       STATE.crop.progress += steps;
       if (STATE.crop.progress >= crop.sols) {
@@ -594,7 +594,8 @@ function settleDay() {
 
   meta.samples += alloc.science;
   STATE.stars = CONFIG.science.starSamples.filter((samples) => meta.samples >= samples).length;
-  if (alloc.comms > 0 && !STATE.sim?.radioBroken) {
+  // Forecasts need at least basic communication (level 2) in the simulator.
+  if (alloc.comms > 0 && commsLevel(STATE) >= 2) {
     meta.forecastAsked = true;
     if(STATE.sim){STATE.sim.sentSol=STATE.sol;STATE.sim.sentDamage=STATE.damage;}
   }
@@ -608,7 +609,7 @@ function settleNight() {
   if (unlocked("heat")) {
     let heated = meta.blackoutNight == null && STATE.alloc.heat >= rules().heatCubes;
     if(STATE.sim){
-      const need=CONFIG.simulation.nightBase+rules().heatCubes;
+      const need=nightNeed(STATE);
       heated=meta.blackoutNight==null && STATE.sim.battery>=need;
       STATE.sim.nightUse=Math.min(need,STATE.sim.battery);
       STATE.sim.battery-=STATE.sim.nightUse;
@@ -712,6 +713,26 @@ export function allocate(system, delta) {
   STATE.alloc[system] = next;
   STATE.cubes -= delta;
   return true;
+}
+
+/** Earth answers when the link level rises: contact, basic link, then the full rescue plan. */
+function queueEarthMessages(before, after) {
+  const types = { 1: "earthContact", 2: "earthLink", 3: "earthPlan" };
+  for (let level = before + 1; level <= after; level++) {
+    if (types[level]) meta.queue.push({ type: types[level], data: { level } });
+  }
+}
+
+/** Missions with their priority and status (LOCKED, AVAILABLE, IN_PROGRESS, COMPLETED). */
+export function missionBoard() {
+  return STATE?.sim ? missionSummary(STATE) : [];
+}
+
+/** Why a work step cannot be planned now, or null. "event" while a decision is open. */
+export function taskReason(key) {
+  if (!STATE?.sim) return "unknown";
+  if (meta.active) return "event";
+  return taskBlocker(STATE, key);
 }
 
 /** Plan field and maintenance work. Resource reservations are refundable until day settlement. */
@@ -862,6 +883,8 @@ export function load() {
   if (!saved) return null;
   STATE = saved.state;
   meta = saved.meta;
+  if (STATE.sim) normalizeSimulation(STATE.sim); // saves from before the engineering campaign
+  meta.warned ??= { oxygen: false, food: false };
   return STATE;
 }
 
@@ -891,7 +914,8 @@ export function getEndReport() {
     status: STATE.status, sol: STATE.sol, chains,
     oxygen: STATE.oxygen, food: STATE.food, damage: STATE.damage,
     panelsWorking: STATE.panels.total - downPanels(), stars: STATE.stars,
-    ...(STATE.sim?{simulation:{ready:{...STATE.sim.ready},departed:STATE.sim.departed,battery:STATE.sim.battery}}:{}),
+    ...(STATE.sim?{simulation:{ready:{...STATE.sim.ready},departed:STATE.sim.departed,battery:STATE.sim.battery,
+      water:STATE.sim.water,missions:missionSummary(STATE),rating:rescueRating(STATE)}}:{}),
   };
 }
 

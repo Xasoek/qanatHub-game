@@ -5,6 +5,7 @@ import { join } from "node:path";
 import test from "node:test";
 import { pathToFileURL } from "node:url";
 import { chromium } from "playwright";
+import { CONFIG } from "../src/config.js";
 
 test("the standalone index.html plays offline on desktop and mobile", async (t) => {
   const directory = await mkdtemp(join(tmpdir(), "one-sol-"));
@@ -49,7 +50,9 @@ test("the standalone index.html plays offline on desktop and mobile", async (t) 
       await page.locator("#end").click();
       await page.locator("#advance").click();
       assert.match(await page.locator("#sol").textContent(), /^Sol 2 of 30/);
-      assert.equal(Number(await page.locator("#oxygen").textContent()), Number(oxygen) - 0.25);
+      // Sol 1 of the campaign: the airlock leaks and the CO2 cartridge is spent (CONFIG.simulation).
+      const loss = CONFIG.simulation.sealLoss + CONFIG.simulation.co2Loss;
+      assert.equal(Number(await page.locator("#oxygen").textContent()), Math.round((Number(oxygen) - loss) * 100) / 100);
       assert.ok(Number(await page.locator("#food").textContent()) < food);
 
       await page.locator("#language").click();

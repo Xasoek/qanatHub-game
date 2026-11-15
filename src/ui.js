@@ -4,7 +4,7 @@ import { CONFIG } from "./config.js";
 import { FACTS, SITES, loadSolarData } from "./data.js";
 import {
   STATE, allocate, endSol, getActiveEvent, getBlockedSystems, getEndReport, hasSave, load, newGame, on, resolveEvent, setSpeed,
-  skipToDecision, tick, planTask, unplanTask, taskAvailable, simulationPreview, drawBattery, reviewSol, save,
+  skipToDecision, tick, planTask, unplanTask, taskAvailable, simulationPreview, drawBattery, reviewSol, save, missionBoard, taskReason,
 } from "./engine.js";
 import { DAILY_TASKS, STORY_SOURCES, TRAINING_TASKS, playIntro, t } from "./text.js";
 
@@ -187,7 +187,7 @@ export async function mountGame(root) {
       <p id="work-fault"></p><p id="work-crop"></p><p id="work-radio"></p>
       <p id="work-reply"></p><p id="work-tip"></p><p id="work-eva"></p><p id="work-final"></p>
       <button id="work-draw" type="button"></button>
-      <div id="work-tasks" class="work-tasks"></div><p id="work-error" role="status"></p><p id="work-model"></p>
+      <div id="work-tasks" class="work-tasks"></div><p id="work-error" role="status"></p><details id="work-notebook" class="work-notebook"></details><p id="work-model"></p>
     </section>
     <section id="portrait-lock" class="portrait-lock" role="alert"><div class="rotate-device" aria-hidden="true"></div><h2 id="rotate-title"></h2><p id="rotate-hint"></p></section>
     <section id="reading-screen" class="sheet reading" hidden>
@@ -458,6 +458,10 @@ export async function mountGame(root) {
     if(STATE.sim){
       if(STATE.sol>=CONFIG.missionSols&&!STATE.sim.departed)paragraph(container,"sim.notes.notReady");
       paragraph(container,"sim.ready",{n:Object.values(STATE.sim.ready).filter(Boolean).length});
+      if(report.simulation?.rating)paragraph(container,"sim.rating."+report.simulation.rating);
+      const missions=node("ul","","end-missions");
+      for(const mission of report.simulation?.missions??[])missions.append(node("li",copy("sim.missions."+mission.id)+" · "+copy("sim.status."+mission.status)));
+      container.append(node("h3",copy("sim.missionsTitle")),missions);
     }
     const stats = node("div", "", "end-stats");
     paragraph(stats, "end.oxygen", { n: report.oxygen });
@@ -518,43 +522,74 @@ export async function mountGame(root) {
     }
   }
 
+  const signed = (n) => (n > 0 ? "+" : n < 0 ? "−" : "") + Math.abs(Math.round(n * 100) / 100);
+
+  function stepReason(key) {
+    const reason = taskReason(key);
+    if (!reason) return "";
+    if (reason.startsWith("needs:")) return copy("sim.reason.needs", { step: copy("sim.tasks." + reason.slice(6)) });
+    return copy("sim.reason." + reason);
+  }
+
   function renderWork() {
     const sim=STATE.sim, forecast=simulationPreview();
     if(!sim || !forecast)return;
     text("work-title","sim.title");text("work-close","sim.close");text("work-draw","sim.draw");
     text("work-tip","sim.tip");text("work-eva","sim.returnPath");find("work-eva").append(" ",copy("sim.farWarning"));text("work-final","sim.final");text("work-model","sim.balance");
     find("work-stats").replaceChildren(
-      node("b",copy("sim.hours",{used:forecast.hours,total:CONFIG.simulation.hours})),
+      node("b",copy("sim.hours",{used:forecast.hours,total:forecast.total})),
       node("b",copy("sim.battery",{n:sim.battery,total:CONFIG.simulation.batteryCapacity})),
       node("b",copy("sim.parts",{n:sim.spares})),
+      node("b",copy("sim.water",{n:sim.water,change:signed(-forecast.waterUse)})),
+      node("b",copy("sim.comms",{level:copy("sim.commsLevel."+forecast.comms)})),
       node("b",copy("sim.ready",{n:forecast.ready}))
     );
-    find("work-preview").textContent=copy("sim.preview",forecast);
+    find("work-preview").textContent=copy("sim.preview",{...forecast,waterChange:signed(-forecast.waterUse)});
     find("work-preview").classList.toggle("work-danger",forecast.charge<forecast.need);
-    find("work-fault").textContent=sim.sealBroken
-      ? sim.patchUntil?copy("sim.patched",{sol:sim.patchUntil}):copy(sim.inspected?"sim.diagnosed":"sim.leak")
-      :copy("sim.fixed");
-    find("work-radio").textContent=sim.radioBroken?copy("sim.radio"):"";
+    find("work-fault").textContent=sim.done.seal?copy("sim.fixed"):sim.patchUntil?copy("sim.patched",{sol:sim.patchUntil}):copy(sim.done.inspect?"sim.diagnosed":"sim.leak");
+    find("work-radio").textContent=copy("sim.commsNow."+forecast.comms);
     text("work-crop","sim.harvest",{n:STATE.crop.progress,total:CONFIG.crops[STATE.crop.type].sols});
-    find("work-reply").textContent=sim.reply?copy("sim.request",{sent:sim.reply.sentSol,received:sim.reply.receivedSol})+" "+copy(sim.reply.stale?"sim.stale":"sim.fresh"):"";
+    const delay=missionSnapshot(STATE.sol,CONFIG.missionSols).delayMin.toFixed(1);
+    find("work-reply").textContent=sim.reply?copy("sim.request",{sent:sim.reply.sentSol,received:sim.reply.receivedSol,min:delay})+" "+copy(sim.reply.stale?"sim.stale":"sim.fresh"):copy("sim.delay",{min:delay});
     find("work-draw").disabled=STATE.phase!=="day" || !sim.battery || Boolean(getActiveEvent()) || STATE.status!=="playing";
-    const key=lang+JSON.stringify([getActiveEvent()?.id,STATE.sol,STATE.phase,STATE.cubes,STATE.alloc,STATE.oxygen,STATE.panels,STATE.status,sim]);
+    const key=lang+JSON.stringify([getActiveEvent()?.id,STATE.sol,STATE.phase,STATE.cubes,STATE.alloc,STATE.oxygen,STATE.fatigue,STATE.panels,STATE.status,sim]);
     if(!changed("work",key))return;
     const tasks=find("work-tasks");tasks.replaceChildren();
-    for(const [id,rule]of Object.entries(CONFIG.simulation.tasks)){
-      const queued=sim.plan.includes(id), available=taskAvailable(id);
-      const button=node("button","","work-job"+(queued?" reserved":""));
-      button.type="button";button.disabled=!queued&&!available;
-      button.setAttribute("aria-pressed",String(queued));
-      button.append(node("b",copy("sim.tasks."+id)),node("span",copy("sim.why."+id)),
-        node("small",copy("sim.cost",rule)),node("em",queued?copy("sim.pending"):available?"":copy("sim.locked")));
-      button.addEventListener("click",()=>{
-        const done=queued?unplanTask(id):planTask(id);
-        find("work-error").textContent=done?"":copy("sim.failed");
-        if(done&&!queued)world?.focus(rule.target);
-        renderMission();
-      });
-      tasks.append(button);
+    const steps=CONFIG.simulation.tasks;
+    for(const mission of missionBoard().concat([{id:"supplies",priority:"optional",status:"AVAILABLE"},{id:"health",priority:"optional",status:"AVAILABLE"}])){
+      const group=node("section","","work-mission "+mission.priority+" "+mission.status.toLowerCase());
+      const head=node("h3",copy("sim.missions."+mission.id));
+      head.append(" ",node("span",copy("sim.priority."+mission.priority),"badge"));
+      if(mission.id in CONFIG.simulation.missions)head.append(" ",node("span",copy("sim.status."+mission.status),"badge status"));
+      group.append(head,node("p",copy("sim.missionWhy."+mission.id),"mission-why"));
+      const list=node("div","","work-steps");
+      for(const [id,rule]of Object.entries(steps)){
+        if(rule.mission!==mission.id)continue;
+        const queued=sim.plan.includes(id), done=!rule.repeat&&sim.done[id], reason=queued||done?"":stepReason(id);
+        const button=node("button","","work-job"+(queued?" reserved":"")+(done?" done":""));
+        button.type="button";button.disabled=!queued&&Boolean(reason||done);
+        button.setAttribute("aria-pressed",String(queued));
+        button.append(node("b",(done?"✓ ":"")+copy("sim.tasks."+id)),node("span",copy("sim.why."+id)),
+          node("small",copy("sim.cost",rule)),node("em",queued?copy("sim.pending"):done?copy("sim.doneStep"):reason));
+        button.addEventListener("click",()=>{
+          const ok=queued?unplanTask(id):planTask(id);
+          find("work-error").textContent=ok?"":stepReason(id)||copy("sim.failed");
+          if(ok&&!queued)world?.focus(rule.target);
+          renderMission();
+        });
+        list.append(button);
+      }
+      group.append(list);
+      tasks.append(group);
+    }
+    // Mission notebook: what Mark repaired and what Beep explained.
+    const notebook=find("work-notebook");notebook.replaceChildren(node("summary",copy("sim.notebook")));
+    const learned=Object.keys(steps).filter(id=>sim.done[id]);
+    if(!learned.length)notebook.append(node("p",copy("sim.notebookEmpty")));
+    for(const id of learned){
+      const note=node("p","","note");
+      note.append(node("b",copy("sim.tasks."+id)+": "),copy("sim.learn."+id));
+      notebook.append(note);
     }
   }
   listen("work-open",()=>{find("work-screen").hidden=false;setSpeed(0);renderWork();find("work-close").focus();});
@@ -592,6 +627,12 @@ export async function mountGame(root) {
       ["dose", String(STATE.dose), STATE.dose > 5 ? "warn" : ""],
       ["fatigue", String(STATE.fatigue), STATE.fatigue >= CONFIG.cubePenalty.fatigueAt ? "warn" : ""],
       ["crates", String(STATE.crates), ""],
+      ...(STATE.sim ? [
+        ["water", copy("ui.value.sols", { n: STATE.sim.water }), STATE.sim.water < CONFIG.lowReserveSols ? "warn" : ""],
+        ["co2", copy(STATE.sim.done.co2 ? "ui.value.co2ok" : "ui.value.co2spent"), STATE.sim.done.co2 ? "" : "warn"],
+        ["cabin", copy(STATE.sim.done.seal ? "ui.value.sealed" : STATE.sim.patchUntil ? "ui.value.patched" : "ui.value.leaking"), STATE.sim.done.seal ? "" : "warn"],
+        ["link", copy("sim.commsLevel." + STATE.sim.commsLevel), STATE.sim.commsLevel < 2 ? "warn" : ""],
+      ] : []),
       ...(temp ? [["temp", copy("ui.value.temp", { c: temp.averageC }), ""]] : []),
       ...(temp ? [["rangeLabel", copy("ui.range", { min: temp.minC, max: temp.maxC }), ""]] : []),
       ...(pressure ? [["pressure", copy("ui.value.pressure", { mb: pressure.mb }), ""]] : []),
@@ -656,7 +697,10 @@ export async function mountGame(root) {
 
     if(STATE.sim){
       if(STATE.sol===1 && !STATE.sim.inspected)find("bip").textContent=copy("sim.intro");
-      if(STATE.sim.notes.length)find("warning").textContent=STATE.sim.notes.map(n=>copy("sim.notes."+n)).join(" ");
+      const notes=STATE.sim.notes.filter(n=>!n.startsWith("done:"));
+      if(notes.length)find("warning").textContent=notes.map(n=>copy("sim.notes."+n)).join(" ");
+      const lesson=STATE.sim.lastPlan.findLast?.(k=>k!=="rest"&&k!=="robot");
+      if(lesson&&STATE.phase!=="night"&&!(STATE.sol===1&&!STATE.sim.inspected))find("bip").textContent=copy("sim.done",{step:copy("sim.tasks."+lesson)})+" "+copy("sim.learn."+lesson);
       if(event)find("work-screen").hidden=true;
       renderWork();
     }

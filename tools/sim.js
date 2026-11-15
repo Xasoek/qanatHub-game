@@ -3,6 +3,7 @@
 import { fileURLToPath } from "node:url";
 import { CONFIG } from "../src/config.js";
 import { NASA_ARCHIVE } from "../src/data.js";
+import { failureReason, playCampaign } from "./campaign-bot.js";
 import {
   STATE, allocate, endSol, getActiveEvent, getEndReport, newGame, resolveEvent, skipToDecision,
 } from "../src/engine.js";
@@ -185,4 +186,27 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   }
   console.log("Presentation mode (engineer, all sites). Decision time is not included.");
   console.table(demo);
+
+  // Engineering campaign: the normal browser mission (newGame({simulation:true})).
+  const campaign = {};
+  const solarData = { mode: "archive", flares: NASA_ARCHIVE };
+  for (const difficulty of Object.keys(CONFIG.difficulties)) {
+    for (const style of ["sensible", "careless", "random"]) {
+      for (const site of CONFIG.sites) {
+        const reasons = {};
+        let wins = 0;
+        for (let i = 0; i < count; i++) {
+          const reason = failureReason(playCampaign({ seed: i * 2654435761 >>> 0, site, difficulty, style, solarData }));
+          if (reason === "rescued") wins++;
+          else reasons[reason] = (reasons[reason] ?? 0) + 1;
+        }
+        const main = Object.entries(reasons).sort((a, b) => b[1] - a[1])[0];
+        campaign[`${difficulty} · ${style} · ${site}`] = {
+          "win %": Math.round((wins / count) * 1000) / 10, "main failure": main ? main[0] : "-",
+        };
+      }
+    }
+  }
+  console.log("Engineering campaign (tools/campaign-bot.js). Target: sensible engineer 40-60% on average, random below 10%.");
+  console.table(campaign);
 }

@@ -240,6 +240,7 @@ button.primary:hover:not(:disabled) { background: linear-gradient(#e2c58e, #c7a4
   .cubes-free { display: none; }
   .cards, .cards.two, .acts { grid-template-columns: 1fr; }
   .sheet { padding: 16px; top: auto; bottom: 8px; transform: translateX(-50%); max-height: calc(100svh - 70px); }
+  .work-screen .sheet-head { top: -16px; margin: -16px -16px 0; padding: 10px 16px; }
   .orbit-heading { left: 8px; right: 66px; top: 112px; max-width: none; }
 }
 @media (orientation: landscape) and (max-height: 520px) {
@@ -303,10 +304,25 @@ button.primary:hover:not(:disabled) { background: linear-gradient(#e2c58e, #c7a4
 
 .work-screen {z-index:7;width:min(940px,calc(100% - 30px));background:rgba(18,34,45,.98);}
 .work-screen p {font-size:13px;line-height:1.4;}
+/* The mission board scrolls; its title and close button stay on top of the cards. */
+.work-screen .sheet-head {position:sticky;top:-22px;z-index:2;margin:-22px -22px 0;padding:14px 22px;background:#12222d;border-bottom:1px solid #3b5866;}
 .work-stats {display:flex;gap:8px;flex-wrap:wrap;}
 .work-stats b {font-size:13px;padding:8px;background:#29434e;border-radius:6px;}
 .work-danger {color:#ffc49c;}
-.work-tasks {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+.work-tasks {display:grid;gap:12px;}
+.work-mission {border:1px solid #3b5866;border-radius:8px;padding:10px;}
+.work-mission.critical {border-left:4px solid #f0cc99;}
+.work-mission.completed {opacity:.75;}
+.work-mission h3 {margin:0 0 4px;font-size:15px;}
+.work-mission .badge {display:inline-block;font-size:11px;font-weight:600;padding:2px 6px;border-radius:4px;background:#29434e;margin-left:4px;}
+.work-mission.critical .badge:first-of-type {background:#6b4f24;}
+.mission-why {margin:0 0 8px;color:#c3d3d7;}
+.work-steps {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+.work-job.done {background:#24382c;border-color:#5f8a64;}
+.work-notebook {margin-top:10px;}
+.work-notebook summary {cursor:pointer;font-weight:600;min-height:44px;display:flex;align-items:center;}
+.work-notebook .note {margin:4px 0;}
+@media (max-width: 900px) {.work-steps {grid-template-columns:repeat(2,minmax(0,1fr));}}
 .work-job {text-align:left;display:grid;gap:7px;padding:12px;font-size:13px;}
 .work-job span {font-weight:400;font-size:12px;color:#c3d3d7;}
 .work-job small {font-weight:400;color:#f0cc99;}
@@ -315,7 +331,7 @@ button.primary:hover:not(:disabled) { background: linear-gradient(#e2c58e, #c7a4
 .work-job:disabled {opacity:.5;}
 #work-open {font-size:12px;min-height:36px;width:100%;margin-bottom:8px;border-color:#a0c0bf;}
 #work-model {color:#a4b7c1;font-size:11px;}
-@media(max-height:520px){.work-tasks{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-height:520px){.work-tasks{grid-template-columns:1fr;}}
 
 .intro-sequence { z-index:10; background:#142b3b;gap:14px; }
 #intro-art svg { width:100%;height:auto;max-height:48svh; }
