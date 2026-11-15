@@ -14,10 +14,14 @@ async function withPage(t,fn,options={}){
  assert.deepEqual(errors,[]);
 }
 async function menu(page,id){await page.locator('#menu').click();await page.locator(id).click();}
+// A first visit opens the "How to play" guide (tested in browser-smoke.js); these checks close it.
+// Closing it with Skip, rather than presetting localStorage from an init script, keeps the
+// storage writes in page order: an init-script write at document start raced the autosave on reload.
+async function skipGuide(page){if(await page.locator('#guide-layer').isVisible())await page.locator('#guide-skip').click();}
 async function state(page){return page.evaluate(key=>JSON.parse(localStorage.getItem(key)).state,key);}
 
 test('UI restores saved missions, varies new seeds, and preserves a normal game across a repeatable demo',async t=>withPage(t,async page=>{
- await page.goto(url);await page.locator('#start').click();await page.locator('#next').click();
+ await page.goto(url);await skipGuide(page);await page.locator('#start').click();await page.locator('#next').click();
  await page.locator('#system-air [data-delta="1"]').click();await page.locator('#system-air [data-delta="1"]').click();
  await page.locator('#end').click();await page.locator('#advance').click();
  const saved=await state(page);assert.equal(saved.sol,2);
@@ -45,7 +49,7 @@ for(const live of [true,false])test('UI NASA selection '+(live?'shows successful
   const data=live?[{flrID:'UI-TEST-ONLY',beginTime:new Date().toISOString(),classType:'M1.2',link:'https://example.invalid/ui-test'}]:[];
   await route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify(data)});
  });
- await page.goto(url);assert.equal(requests,0);
+ await page.goto(url);await skipGuide(page);assert.equal(requests,0);
  await page.locator('#data-cards [data-value="live"]').click();await page.locator('#start').click();
  await page.locator('#next').waitFor();assert(requests>0);
  assert.match(await page.locator('#solar').textContent(),live?/Live NASA data.*\d{4}-\d{2}-\d{2}/:/NASA archive/);
@@ -65,7 +69,7 @@ function blockedSave(){
 }
 test('blocked controls use the engine reason after reload in EN and RU',async t=>withPage(t,async page=>{
  const fixture=blockedSave();await page.addInitScript(({key,fixture})=>localStorage.setItem(key,fixture),{key,fixture});
- await page.goto(url);await page.locator('#continue').click();
+ await page.goto(url);await skipGuide(page);await page.locator('#continue').click();
  for(const ru of [false,true]){
   if(ru)await page.locator('#language').click();
   for(const system of ['farm','repair']){

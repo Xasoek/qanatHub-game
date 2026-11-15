@@ -6,6 +6,7 @@ import test from "node:test";
 import { pathToFileURL } from "node:url";
 import { chromium } from "playwright";
 import { CONFIG } from "../src/config.js";
+import { GUIDE_STEPS } from "../src/guide.js";
 
 test("the standalone index.html plays offline on desktop and mobile", async (t) => {
   const directory = await mkdtemp(join(tmpdir(), "one-sol-"));
@@ -34,6 +35,21 @@ test("the standalone index.html plays offline on desktop and mobile", async (t) 
       await page.goto(url);
 
       assert.equal(await page.locator("#game-title").textContent(), "One Sol to Rescue");
+      // A first visit opens the "How to play" guide at once; it pages forward and back and closes for good.
+      const guide = page.getByRole("dialog", { name: "Your mission" });
+      await guide.waitFor();
+      assert.equal(await page.locator("#guide-progress").textContent(), `1/${GUIDE_STEPS.length}`);
+      await page.locator("#guide-next").click();
+      assert.equal(await page.locator("#guide-progress").textContent(), `2/${GUIDE_STEPS.length}`);
+      await page.locator("#guide-back").click();
+      assert.equal(await page.locator("#guide-progress").textContent(), `1/${GUIDE_STEPS.length}`);
+      for (let step = 1; step < GUIDE_STEPS.findIndex(({ id }) => id === "bottom") + 1; step++) await page.locator("#guide-next").click();
+      assert.equal(await page.locator("#guide-title").textContent(), "Buttons at the bottom");
+      assert.ok(await page.locator("#guide-rows").getByText("Start day", { exact: true }).isVisible());
+      await page.locator("#guide-skip").click();
+      await page.locator("#guide-layer").waitFor({ state: "hidden" });
+      await page.reload();
+      assert.ok(await page.locator("#guide-layer").isHidden(), "a returning player is not shown the guide again");
       await page.locator("#start").click();
       // The base is a WebGL canvas; browsers without WebGL 2 get the SVG fallback.
       await page.locator("#base canvas, #base svg").first().waitFor();
@@ -62,8 +78,23 @@ test("the standalone index.html plays offline on desktop and mobile", async (t) 
       const fitsViewport = await page.evaluate(() =>
         document.documentElement.scrollWidth <= document.documentElement.clientWidth);
       assert.ok(fitsViewport, "mission screen overflows the viewport");
+
+      // The "?" button reopens the guide during a mission; Escape closes it.
+      await page.locator("#help").click();
+      await page.getByRole("dialog", { name: "Твоя миссия" }).waitFor();
+      const next = page.locator("#guide-next");
+      for (let step = 1; step < GUIDE_STEPS.length; step++) {
+        const box = await next.boundingBox();
+        assert.ok(box && box.y + box.height <= viewport.height, `Next stays on screen on step ${step}`);
+        await next.click();
+      }
+      assert.equal(await next.textContent(), "Вперёд!");
+      await page.keyboard.press("Escape");
+      await page.locator("#guide-layer").waitFor({ state: "hidden" });
+      assert.match(await page.locator("#sol").textContent(), /^Сол 2 из 30/);
       assert.deepEqual(errors, [], "the browser reported uncaught exceptions");
-      assert.deepEqual(requests, [url], "the game requested resources outside index.html");
+      // The page is loaded twice (the reload above); it never requests anything but index.html.
+      assert.deepEqual([...new Set(requests)], [url], "the game requested resources outside index.html");
     });
   }
 });

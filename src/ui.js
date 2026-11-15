@@ -8,6 +8,7 @@ import {
 } from "./engine.js";
 import { DAILY_TASKS, STORY_SOURCES, TRAINING_TASKS, playIntro, t } from "./text.js";
 import { createGuide, guideSeen, markGuideSeen } from "./guide.js";
+import { icon } from "./icons.js";
 
 const studyKeys = ["bip.study.sleep", "bip.study.muscle", "bip.study.bone"];
 const realKeys = ["real.storm", "real.flare", "real.lettuce", "real.radish", "real.potato", "real.cropTiming"];
@@ -16,25 +17,6 @@ const actionKeys = { next: "game.next", end: "game.end", advance: "game.advance"
 // Which building Mark walks to for each system, and which system a building opens.
 const SYSTEM_OBJECT = { air: "air", farm: "farm", repair: "repair", heat: "air", comms: "comms", science: "science" };
 const OBJECT_SYSTEM = { air: "air", farm: "farm", repair: "repair", heat: null, comms: "comms", science: "science", panels: "repair" };
-const ICONS = {
-  air: '<path d="M8 25V14a8 8 0 0 1 16 0v11M5 25h22M12 25v-8h8v8M10 12h12"/>',
-  farm: '<path d="M16 27V14m0 6C3 21 3 9 3 9s13-1 13 11Zm0-5C16 3 28 3 28 3s1 12-12 12Z"/>',
-  repair: '<path d="M20 3a8 8 0 0 0-8 10L4 23a3 3 0 0 0 5 5l10-9A8 8 0 0 0 29 9l-6 5-5-5 5-6Z"/>',
-  heat: '<path d="M16 4v14m0 0a5 5 0 1 0 0 10 5 5 0 0 0 0-10ZM12 8h4m-4 4h4"/><path d="M23 9c2 2 2 5 0 7m3-10c3 4 3 9 0 13"/>',
-  comms: '<path d="M5 5c-2 10 4 17 14 14L5 5Zm14 14 6 8H9l4-8m5-11 6-6m-4 0h4v4M20 9a5 5 0 0 1 5 5m-5-9a9 9 0 0 1 9 9"/>',
-  science: '<path d="M12 3h8m-6 0v8L6 26a2 2 0 0 0 2 3h16a2 2 0 0 0 2-3l-8-15V3M9 20h14"/>',
-  oxygen: '<path d="M7 12a8 8 0 0 1 16 0v10a8 8 0 0 1-16 0V12Z"/><path d="M11 10h8m-8 13h8"/>',
-  food: '<path d="M16 27V14m0 6C3 21 3 9 3 9s13-1 13 11Zm0-5C16 3 28 3 28 3s1 12-12 12Z"/>',
-  energy: '<path d="M18 2 5 19h10l-1 11 13-18H17l1-10Z"/>',
-  planet: '<circle cx="16" cy="16" r="10"/><path d="M4 19c-7 8 8 8 19-3S34 4 27 7"/>',
-  home: '<path d="M5 15 16 5l11 10M8 13v13h16V13"/>',
-  pause: '<path d="M11 7v18M21 7v18"/>',
-  skip: '<path d="m6 7 10 9-10 9V7Zm10 0 10 9-10 9V7Z"/>',
-  sound: '<path d="M5 12h5l7-6v20l-7-6H5Z"/><path d="M21 11a6 6 0 0 1 0 10m3-14a11 11 0 0 1 0 18"/>',
-  mute: '<path d="M5 12h5l7-6v20l-7-6H5Z"/><path d="m21 12 8 8m0-8-8 8"/>',
-  menu: '<path d="M5 9h22M5 16h22M5 23h22"/>',
-};
-const icon = (name) => `<svg class="ico" viewBox="0 0 32 32" aria-hidden="true" focusable="false">${ICONS[name]}</svg>`;
 
 // Short Web Audio cues, no sound files.
 function createSound() {
@@ -114,6 +96,7 @@ export async function mountGame(root) {
       </div>
       <div class="topright">
         <p id="solar" class="chip"></p>
+        <button id="help" type="button" class="icon-button help-button">${icon("help")}</button>
         <button id="sound" type="button" class="icon-button"></button>
         <button id="language" type="button"></button>
         <button id="menu" type="button" class="icon-button" aria-expanded="false">${icon("menu")}</button>
@@ -199,7 +182,8 @@ export async function mountGame(root) {
     <div id="guide-layer" class="guide-layer" hidden></div>`;
 
   const listen = (id, fn) => find(id).addEventListener("click", fn);
-  // "How to play" guide. It is offered once on the setup screen and can be reopened from the menu.
+  // "How to play" guide. A brand-new player sees it at once (see the end of mountGame); a returning
+  // player who has not seen it gets the offer card on setup. The "?" button and the menu reopen it.
   // While it is open the mission clock waits (see frame()), and the game state is never changed.
   let offerGuide = !guideSeen();
   const guide = createGuide({
@@ -796,7 +780,9 @@ export async function mountGame(root) {
     find("menu-panel").hidden = !menuOpen;
     text("mission-menu","ui.missionMenu");text("watch","intro.play");text("demo-start","ui.demoStart");text("demo-exit","ui.demoExit");
     text("guide-open", "guide.open");
-    find("guide-offer").hidden = !offerGuide;
+    find("help").setAttribute("aria-label", copy("guide.open"));
+    find("help").title = copy("guide.open");
+    find("guide-offer").hidden = !offerGuide || guide.isOpen;
     text("guide-offer-text", "guide.offer.text");
     text("guide-offer-open", "guide.offer.open");
     text("guide-offer-dismiss", "guide.offer.dismiss");
@@ -807,7 +793,7 @@ export async function mountGame(root) {
     text("sources", "sources.title");
     text("solar", savedSolar?"ui.savedSolar":solarData.mode === "live" ? "solar.live" : solarData.flares.length ? "solar.archive" : "solar.unavailable", { date: solarData.asOf });
     const timedDecision = screen === "mission" && getActiveEvent()?.remainingMs != null;
-    for (const id of ["facts", "teachers", "sources", "menu"]) find(id).disabled = timedDecision;
+    for (const id of ["facts", "teachers", "sources", "menu", "help"]) find(id).disabled = timedDecision;
     for (const id of ["setup", "mission"]) find(id + "-screen").hidden = screen !== id;
     find("reading-screen").hidden = !["facts", "teachers", "sources"].includes(screen);
     find("resbar").hidden = !STATE || screen === "setup";
@@ -903,6 +889,7 @@ export async function mountGame(root) {
   listen("intro-next",()=>intro?.next());listen("intro-skip",()=>intro?.skip());
   listen("watch",watchIntro);
   listen("guide-open", () => { menuOpen = false; render(); guide.open(find("menu")); });
+  listen("help", () => { menuOpen = false; render(); guide.open(find("help")); });
   listen("guide-offer-open", () => guide.open(find("start")));
   listen("guide-offer-dismiss", () => { offerGuide = false; markGuideSeen(); render(); find("start").focus(); });
   listen("mission-menu",()=>{if(!demoRunning)save();menuOpen=false;find("work-screen").hidden=true;show("setup");});
@@ -979,6 +966,12 @@ export async function mountGame(root) {
   }
 
   render();
+  // A brand-new player (no guide status and no saved mission) does not know the controls yet:
+  // the guide opens at once. Skip, Escape or finishing it closes it for good.
+  if (offerGuide && !hasSave()) {
+    guide.open(find("start"));
+    find("guide-offer").hidden = true;
+  }
   requestAnimationFrame(frame);
   setTimeout(initWorld, 50);
 }
