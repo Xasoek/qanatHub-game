@@ -43,7 +43,7 @@
 | `type` | Варианты (`defaultChoice` первым) | `data` |
 | --- | --- | --- |
 | `storm` | `keep`, `fold`. Единственное событие с `timeoutMs`: 10 с «Инженер», 15 с «Курсант» | `damage: [min, max]` |
-| `flare` | `shelter`, `work` | `flareClass: C\|M\|X`, `flare: {beginTime, classType}` из DONKI или `null`, `damage` |
+| `flare` | `shelter`, `work` | `flareClass: C\|M\|X`, `flare: {beginTime, classType, flrID, link}` из DONKI или `null`; `link` — адрес записи DONKI для экрана фактов, `null` у записи без ссылки, `damage` |
 | `scrubber` | `later`, `fix` | — |
 | `dustyPanels` | `live`, `clean` | — |
 | `roverCrate` | `stay`, `food`, `oxygen` | — |
@@ -57,7 +57,8 @@
 
 ## Данные и интерфейс
 
-- `data.js` экспортирует исходный массив `NASA_ARCHIVE`, список источников `SOURCES` с элементами `{id, title, url}` и `async loadSolarData({mode = "archive"} = {})`. Результат `{mode, flares, asOf, noticeKey}` сообщает фактический режим, массив донесений, дату `YYYY-MM-DD` или `null` и ключ уведомления или `null`. В режиме `live` функция запрашивает вспышки за последние 30 дней с таймаутом 5 секунд и кэшем в `localStorage` на сутки. При сетевой ошибке, таймауте или пустом ответе она возвращает архив с `noticeKey: "solar.liveUnavailable"`. Поля записей сохраняют исходные имена DONKI: `flrID`, `beginTime`, `peakTime`, `classType`, `sourceLocation`, `activeRegionNum`, а для записей из уведомлений также `messageID` и `messageURL`.
+- `data.js` экспортирует исходный массив `NASA_ARCHIVE`, список источников `SOURCES` с элементами `{id, title, url}` и `async loadSolarData({mode = "archive"} = {})`. Результат `{mode, flares, asOf, noticeKey}` сообщает фактический режим, массив донесений, дату `YYYY-MM-DD` или `null` и ключ уведомления или `null`. В режиме `live` функция запрашивает вспышки за последние 30 дней с таймаутом 5 секунд и кэшем в `localStorage` на сутки. При сетевой ошибке, таймауте или пустом ответе она возвращает архив с `noticeKey: "solar.liveUnavailable"`. Поля записей сохраняют исходные имена DONKI: `flrID`, `beginTime`, `peakTime`, `classType`, `sourceLocation`, `activeRegionNum`, а для записей из уведомлений также `messageID` и `messageURL`. Поле `link` есть у каждой записи: у записей FLR это ссылка DONKI, у записей из уведомлений — `messageURL`, страница этого уведомления о вспышке. Все 36 ссылок архива проверены в браузере 2026-11-14.
+- Все эндпоинты живого режима опрашиваются параллельно, побеждает первый непустой ответ. Для проверки в браузере `loadSolarData` принимает `fetchImpl`, `storage`, `now` и `timeoutMs`.
 - Архив генерирует `tools/donki-archive.js` в `src/nasa-archive.js`. `ARCHIVE_INFO` сообщает эндпоинт, диапазон дат и дату получения. Сейчас `api.nasa.gov` отвечает 404 на `DONKI/FLR`, поэтому архив за май 2024 собран из уведомлений DONKI о вспышках. Они покрывают значимые вспышки от M5 и сильнее.
 - `SOURCES` дополнен полями `org` и `usedFor`. `FACTS` содержит `{id, sourceId, value?, quote}`: `quote` — дословная цитата источника, а текст для игрока пишет роль 4. `SITES.gale|jezero|arcadia` содержит координаты из газетира USGS/IAU (`lat`, `lon` — планетоцентрическая широта и восточная долгота) и диаметр, а `profile` — 16 точек высоты MOLA с запада на восток через центр (`km` от центра, `lon`, `elevationM`) из сервиса Mars Trek. `STUDIES` содержит исследования OSDR `{id, topic, title, url}`.
 - Для движка: `flareClass("M1.4")` возвращает `"M"`, `flaresToSols(flares, {startDate, sols})` возвращает `[{sol, class, classType, beginTime, flrID}]`, где день N диапазона соответствует солу N.

@@ -242,7 +242,12 @@ export function parseFlareNotification(message) {
     if (region[2]) flare.activeRegionNum = Number(region[2]);
   }
   if (message.messageID) flare.messageID = message.messageID;
-  if (message.messageURL) flare.messageURL = message.messageURL;
+  if (message.messageURL) {
+    flare.messageURL = message.messageURL;
+    // The DONKI page of this notification is the record of this flare; "link" is the
+    // field name DONKI FLR records use, so the engine and UI read one field for both.
+    flare.link = message.messageURL;
+  }
   return flare.flrID && flare.beginTime && flareClass(flare.classType) ? flare : null;
 }
 
