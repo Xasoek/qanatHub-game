@@ -5,6 +5,8 @@ export const TEXT = {
   en: {
     story: {
       systems: { air: "Scrubber", farm: "Greenhouse", repair: "Repairs", heat: "Heating", comms: "Radio", science: "Science" },
+      blocked: "Unavailable this sol.",
+      blockedReason: "Unavailable this sol. Reason: {reason}",
       back: "Back",
       task: "Today’s task",
       done: "Task complete",
@@ -268,6 +270,8 @@ export const TEXT = {
   ru: {
     story: {
       systems: { air: "Очиститель", farm: "Теплица", repair: "Ремонт", heat: "Обогрев", comms: "Связь", science: "Наука" },
+      blocked: "Недоступно до следующего сола.",
+      blockedReason: "Недоступно до следующего сола. Причина: {reason}",
       back: "Назад",
       task: "Задача сола",
       done: "Задача выполнена",
