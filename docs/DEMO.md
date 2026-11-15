@@ -21,7 +21,7 @@
 
 Фазы можно переключать вручную. Репетируйте на Гейле с той же сложностью и версией файла. Для показа финала подготовьте отдельную вкладку или запись проверенной партии.
 
-На экране запуска раскройте **Presentation mode** и выберите акт 1, 2 или 3. Акты начинаются на солах 1, 11 и 21 соответственно с готовыми запасами и скоростью ×4. В акте 3 на Гейле покажите бурю на соле 22 и вспышку класса X на соле 23. Для выступления с жёстким лимитом используйте двухминутный план выше. [Критерии полной репетиции акта 3](https://github.com/Xasoek/qanatHub-game/issues/8)
+На экране запуска раскройте **Presentation mode** и выберите акт 1, 2 или 3. Акты начинаются на солах 1, 191 и 201 соответственно с готовыми запасами и скоростью ×4. В акте 3 на Гейле покажите бурю на соле 202 и вспышку класса X на соле 203. Для выступления с жёстким лимитом используйте двухминутный план выше. [Критерии полной репетиции акта 3](https://github.com/Xasoek/qanatHub-game/issues/8)
 
 ## Материалы для записи
 
@@ -29,7 +29,7 @@
 
 Английская озвучка или субтитры:
 
-> Can you keep a Mars base alive for 30 sols? Help Mark and Bip balance oxygen, food and power. When a solar flare strikes, choose whether to shelter or keep working, then see the NASA DONKI record behind the event. Play One Sol to Rescue in English or Russian, even offline.
+> Can you keep a Mars base alive for 210 sols? Help Mark and Bip balance oxygen, food and power. When a solar flare strikes, choose whether to shelter or keep working, then see the NASA DONKI record behind the event. Play One Sol to Rescue in English or Russian, even offline.
 
 Для слайдов используйте пять экранов: задача команды, решение на первом соле, выбор во время события, связь с данными NASA, ссылка на игру и участники. Для научной части используйте запись события из игры и ссылку на [NASA DONKI](https://kauai.ccmc.gsfc.nasa.gov/DONKI/). Поясните, что решение и его последствия моделирует игра, а дата и класс записанной вспышки взяты из архива. Факты о Марсе и экспериментах на МКС доступны через **Sources** в игре.
 

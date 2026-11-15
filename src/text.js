@@ -51,7 +51,7 @@ export const TEXT = {
       f2: "Earth: “The storm will block the Sun.\nTulpar lifts off in 20 minutes!”",
       f3: "Mark can only see dust. His safety line snaps, and he slides into a ravine.\nHis helmet flashes: “NO SIGNAL.”",
       f4: "Commander: “We’ve lost Mark’s signal. We have power for one launch.”\nTulpar’s light fades into the dust.",
-      f5: "Suit oxygen: 4%. Beep: “I’m here, Mark. Let’s get to base.”\nSol 1. Rescue is 30 sols away.",
+      f5: "Suit oxygen: 4%. Beep: “I’m here, Mark. Let’s get to base.”\nSol 1. Rescue is {missionSols} sols away.",
       skip: "Skip",
       next: "Next scene",
       finish: "Choose a base",
@@ -317,7 +317,7 @@ export const TEXT = {
       f2: "Земля: «Буря закроет Солнце.\n„Тулпар“ взлетает через 20 минут!»",
       f3: "Марк видит только пыль. Трос рвётся, и Марк скатывается в овраг.\nНа шлеме мигает: «НЕТ СИГНАЛА».",
       f4: "Командир: «Сигнала Марка нет. Энергии хватит на один взлёт».\nОгонёк «Тулпара» исчезает в пыли.",
-      f5: "Кислород в скафандре: 4%. Бип: «Марк, я здесь. Идём на базу».\nСол 1. До помощи осталось 30 солов.",
+      f5: "Кислород в скафандре: 4%. Бип: «Марк, я здесь. Идём на базу».\nСол 1. До помощи осталось {missionSols} солов.",
       skip: "Пропустить",
       next: "Следующий кадр",
       finish: "К выбору базы",
@@ -641,7 +641,7 @@ TEXT.en.ui = Object.assign({
   "systemFor": "System: {system}",
   "rotateTitle": "Rotate your device",
   "rotateHint": "One Sol to Rescue is played in landscape. The mission waits while the screen is upright."
-}, {"dataSource": "NASA solar data", "dataArchive": {"title": "NASA archive", "note": "Real flares from May 1–31, 2024. Works offline."}, "dataLive": {"title": "Today's Sun", "note": "Downloads flares from the last 30 days. Needs the internet."}, "loading": "Fetching NASA data…", "blockedTitle": "Closed until tomorrow: {why}", "blockedBy": {"storm": "panels are folded", "flare": "Mark is in the shelter", "dustyPanels": "Mark is cleaning panels", "roverCrate": "Mark went to the rover"}, "rangeLabel": "Day to night", "range": "{max}…{min} °C"}, {"space": {"sun": "Sun", "mercury": "Mercury", "venus": "Venus", "earth": "Earth", "mars": "Mars", "jupiter": "Jupiter", "saturn": "Saturn", "uranus": "Uranus", "neptune": "Neptune", "ship": "Sunkar"}, "focus": {"mars": "Mars", "earth": "Earth", "system": "Solar system", "ship": "Sunkar ship"}, "trip": {"ship": "Rescue cargo ship «Sunkar»", "day": "Flight day", "dayValue": "{d} of {total}", "arrival": "Arrives in", "arrivalValue": "{n} days · {s} sols", "speed": "Speed around the Sun", "speedValue": "{v} km/s", "toMars": "Distance to Mars", "fromEarth": "Distance from Earth", "million": "{d} million km", "delay": "Radio delay Earth → Mars", "delayValue": "{m} min", "note": "The ship follows a Hohmann transfer: the most fuel-efficient path from Earth to Mars, about 259 days. Game time: each sol moves the ship 7 days, so you can watch the whole flight. Real constants; orbits are drawn as circles in one plane. Inner orbits keep their true proportions; planets are drawn bigger, and the outer planets sit at 60% of their real distance. The ship is drawn enlarged."}});
+}, {"dataSource": "NASA solar data", "dataArchive": {"title": "NASA archive", "note": "Real flares from May 1–31, 2024. Works offline."}, "dataLive": {"title": "Today's Sun", "note": "Downloads flares from the last 30 days. Needs the internet."}, "loading": "Fetching NASA data…", "blockedTitle": "Closed until tomorrow: {why}", "blockedBy": {"storm": "panels are folded", "flare": "Mark is in the shelter", "dustyPanels": "Mark is cleaning panels", "roverCrate": "Mark went to the rover"}, "rangeLabel": "Day to night", "range": "{max}…{min} °C"}, {"space": {"sun": "Sun", "mercury": "Mercury", "venus": "Venus", "earth": "Earth", "mars": "Mars", "jupiter": "Jupiter", "saturn": "Saturn", "uranus": "Uranus", "neptune": "Neptune", "ship": "Sunkar"}, "focus": {"mars": "Mars", "earth": "Earth", "system": "Solar system", "ship": "Sunkar ship"}, "trip": {"ship": "Rescue cargo ship «Sunkar»", "day": "Flight day", "dayValue": "{d} of {total}", "arrival": "Arrives in", "arrivalValue": "{n} days · {s} sols", "speed": "Speed around the Sun", "speedValue": "{v} km/s", "toMars": "Distance to Mars", "fromEarth": "Distance from Earth", "million": "{d} million km", "delay": "Radio delay Earth → Mars", "delayValue": "{m} min", "note": "The ship follows a Hohmann transfer: the most fuel-efficient path from Earth to Mars, about 259 days. Game time: each game sol moves the ship one Martian day, so you can watch the whole flight. Real constants; orbits are drawn as circles in one plane. Inner orbits keep their true proportions; planets are drawn bigger, and the outer planets sit at 60% of their real distance. The ship is drawn enlarged."}});
 TEXT.ru.ui = Object.assign({
   "menu": "Меню",
   "continue": "Продолжить миссию",
@@ -728,9 +728,10 @@ TEXT.ru.ui = Object.assign({
   "systemFor": "Система: {system}",
   "rotateTitle": "Поверни устройство",
   "rotateHint": "В игру играют в горизонтальном положении. Пока экран вертикальный, миссия стоит на паузе."
-}, {"dataSource": "Данные NASA о Солнце", "dataArchive": {"title": "Архив NASA", "note": "Настоящие вспышки 1–31 мая 2024 года. Работает без интернета."}, "dataLive": {"title": "Сегодняшнее Солнце", "note": "Загружает вспышки за последние 30 дней. Нужен интернет."}, "loading": "Загружаем данные NASA…", "blockedTitle": "Закрыто до завтра: {why}", "blockedBy": {"storm": "панели сложены", "flare": "Марк в убежище", "dustyPanels": "Марк чистит панели", "roverCrate": "Марк ушёл к вездеходу"}, "rangeLabel": "Днём и ночью", "range": "{max}…{min} °C"}, {"space": {"sun": "Солнце", "mercury": "Меркурий", "venus": "Венера", "earth": "Земля", "mars": "Марс", "jupiter": "Юпитер", "saturn": "Сатурн", "uranus": "Уран", "neptune": "Нептун", "ship": "Сұңқар"}, "focus": {"mars": "Марс", "earth": "Земля", "system": "Солнечная система", "ship": "Корабль Сұңқар"}, "trip": {"ship": "Спасательный грузовой корабль «Сұңқар»", "day": "День полёта", "dayValue": "{d} из {total}", "arrival": "Прилетит через", "arrivalValue": "{n} дн. · {s} сол.", "speed": "Скорость вокруг Солнца", "speedValue": "{v} км/с", "toMars": "До Марса", "fromEarth": "От Земли", "million": "{d} млн км", "delay": "Задержка радиосигнала Земля → Марс", "delayValue": "{m} мин", "note": "Корабль летит по переходной орбите Гоманна: самому экономному пути от Земли к Марсу, около 259 дней. Время в игре ускорено: каждый сол корабль пролетает 7 дней, чтобы был виден весь путь. Константы настоящие; орбиты нарисованы кругами в одной плоскости. Внутренние орбиты сохраняют настоящие пропорции; планеты нарисованы крупнее, а дальние планеты стоят на 60% от настоящего расстояния. Корабль показан увеличенным."}});
+}, {"dataSource": "Данные NASA о Солнце", "dataArchive": {"title": "Архив NASA", "note": "Настоящие вспышки 1–31 мая 2024 года. Работает без интернета."}, "dataLive": {"title": "Сегодняшнее Солнце", "note": "Загружает вспышки за последние 30 дней. Нужен интернет."}, "loading": "Загружаем данные NASA…", "blockedTitle": "Закрыто до завтра: {why}", "blockedBy": {"storm": "панели сложены", "flare": "Марк в убежище", "dustyPanels": "Марк чистит панели", "roverCrate": "Марк ушёл к вездеходу"}, "rangeLabel": "Днём и ночью", "range": "{max}…{min} °C"}, {"space": {"sun": "Солнце", "mercury": "Меркурий", "venus": "Венера", "earth": "Земля", "mars": "Марс", "jupiter": "Юпитер", "saturn": "Сатурн", "uranus": "Уран", "neptune": "Нептун", "ship": "Сұңқар"}, "focus": {"mars": "Марс", "earth": "Земля", "system": "Солнечная система", "ship": "Корабль Сұңқар"}, "trip": {"ship": "Спасательный грузовой корабль «Сұңқар»", "day": "День полёта", "dayValue": "{d} из {total}", "arrival": "Прилетит через", "arrivalValue": "{n} дн. · {s} сол.", "speed": "Скорость вокруг Солнца", "speedValue": "{v} км/с", "toMars": "До Марса", "fromEarth": "От Земли", "million": "{d} млн км", "delay": "Задержка радиосигнала Земля → Марс", "delayValue": "{m} мин", "note": "Корабль летит по переходной орбите Гоманна: самому экономному пути от Земли к Марсу, около 259 дней. Время в игре ускорено: за каждый игровой сол корабль проходит одни марсианские сутки, чтобы был виден весь путь. Константы настоящие; орбиты нарисованы кругами в одной плоскости. Внутренние орбиты сохраняют настоящие пропорции; планеты нарисованы крупнее, а дальние планеты стоят на 60% от настоящего расстояния. Корабль показан увеличенным."}});
 
 export function t(lang, key, vars = {}) {
+  vars={missionSols:CONFIG.missionSols,evacuationFrom:CONFIG.simulation.evacuationFrom,...vars};
   const catalog = Object.hasOwn(TEXT, lang) ? TEXT[lang] : TEXT.en;
   const value = key.split(".").reduce((node, part) => node && Object.hasOwn(node, part) ? node[part] : undefined, catalog);
   if (typeof value !== "string") return `[${key}]`;
@@ -823,7 +824,7 @@ export const STORY_SOURCES = {
 Object.assign(TEXT.en, {sim: {
   title:"Mark’s workday", open:"Plan work", close:"Back to base",
   intro:"The base is buried. Only one array is clear; the airlock leaks and the radio is down. Clear a passage and inspect the seal before night.",
-  premise:"Restore the storm-damaged outpost, prepare a surface return and reach Sunkar in 30 sols.",
+  premise:"Restore the storm-damaged outpost, prepare a surface return and reach Sunkar in {missionSols} sols.",
   hours:"Work {used} / {total} h", battery:"Battery {n} / {total}", parts:"Spare parts {n}",
   preview:"Tonight: charge {charge}, demand {need}, left {after}. Air use today: {oxygen} sols.",
   draw:"Use battery (up to 2)", ready:"Rescue checks {n} / 3", queue:"Today’s reserved work", empty:"No extra jobs planned.",
@@ -840,7 +841,7 @@ Object.assign(TEXT.en, {sim: {
   fixed:"The airlock seal is repaired.", radio:"Radio fault: powered transmission cannot reach Earth yet.",
   farWarning:"A distant trip prevents greenhouse care today. A storm adds base damage on return.",
   returnPath:"EVA oxygen is reserved for the round trip. Nearby: 0.5 air, 2 h. Distant: 1 air, 3 h.",
-  final:"Repair the seal and radio, test beacon and lander, survey the route. Depart on sols 27–30.",
+  final:"Repair the seal and radio, test beacon and lander, survey the route. Depart on sols {evacuationFrom}–{missionSols}.",
   notes:{patchExpired:"The temporary seal expired: the leak returned.",cancelled:"Shelter or cleaning cancelled field jobs; reserved costs were refunded.",
     evaStorm:"Dust delayed the supply trip and damaged equipment.",scouted:"Beep inspected the fault while Mark stayed indoors.",
     cold:"Battery ran short overnight. Mark is tired.",notReady:"Sunkar reached Mars, but the surface return was incomplete. An assisted rescue retrieved Mark."},
@@ -857,13 +858,13 @@ Object.assign(TEXT.en, {sim: {
     debris:"Removes loose parts from the base.",near:"One crate, one trip. Food at the cost of air and time.",
     far:"One crate, one trip. Blocks plant care. Storm risk is shown above.",robot:"One inspection trip. Uses energy while Mark stays indoors.",
     beacon:"Requires a working radio.",route:"Clear storm debris first. Air covers the outward and return walk.",
-    lander:"A spare and energy for the surface return system.",depart:"Requires all three checks and repaired seal/radio. Opens on sol 27."
+    lander:"A spare and energy for the surface return system.",depart:"Requires all three checks and repaired seal/radio. Opens on sol {evacuationFrom}."
   }
 }});
 Object.assign(TEXT.ru, {sim: {
   title:"Рабочий день Марка",open:"План работ",close:"К базе",
   intro:"Базу засыпало. Открыта лишь одна панель, шлюз теряет воздух, радио молчит. Расчисти проход и проверь уплотнение до ночи.",
-  premise:"Восстанови базу после бури, подготовь возвращение с поверхности и доберись до Сұңқара за 30 солов.",
+  premise:"Восстанови базу после бури, подготовь возвращение с поверхности и доберись до Сұңқара за {missionSols} солов.",
   hours:"Работа {used} / {total} ч",battery:"Аккумулятор {n} / {total}",parts:"Запчасти {n}",
   preview:"Ночью: заряд {charge}, нужно {need}, останется {after}. Расход воздуха за день: {oxygen} сола.",
   draw:"Взять из аккумулятора (до 2)",ready:"Проверки спасения {n} / 3",queue:"Работы, запланированные на сегодня",empty:"Дополнительных работ пока нет.",
@@ -880,7 +881,7 @@ Object.assign(TEXT.ru, {sim: {
   fixed:"Уплотнение шлюза заменено.",radio:"Неисправно радио: подача энергии пока не восстановит связь.",
   farWarning:"Дальняя вылазка отменяет уход за теплицей сегодня. При буре оборудование получит урон.",
   returnPath:"Воздух зарезервирован на путь туда и обратно. Рядом: 0,5 воздуха, 2 ч. Далеко: 1 воздуха, 3 ч.",
-  final:"Почини шлюз и радио, проверь маяк и аппарат, обследуй маршрут. Отправляйся на солах 27–30.",
+  final:"Почини шлюз и радио, проверь маяк и аппарат, обследуй маршрут. Отправляйся на солах {evacuationFrom}–{missionSols}.",
   notes:{patchExpired:"Срок заплаты истёк: утечка вернулась.",cancelled:"Убежище или чистка отменили выездные работы; затраты возвращены.",
     evaStorm:"Пыль задержала вылазку за припасами и повредила оборудование.",scouted:"Бип осмотрел неисправность, пока Марк оставался внутри.",
     cold:"Ночью не хватило заряда. Марк устал.",notReady:"Сұңқар достиг Марса, но возвращение с поверхности не подготовлено. Марка забрала вспомогательная спасательная группа."},
@@ -897,7 +898,7 @@ Object.assign(TEXT.ru, {sim: {
     debris:"Убирает свободные обломки с территории базы.",near:"Один ящик, один поход. Еда за воздух и время.",
     far:"Один ящик, один поход. Отменяет уход за растениями. Риск бури указан выше.",robot:"Один осмотр. Тратит энергию, пока Марк внутри.",
     beacon:"Нужно исправное радио.",route:"Сначала убери обломки. Воздух учитывает путь туда и обратно.",
-    lander:"Запчасть и энергия для системы возвращения.",depart:"Нужны три проверки, исправные шлюз и радио. Доступно с сола 27."
+    lander:"Запчасть и энергия для системы возвращения.",depart:"Нужны три проверки, исправные шлюз и радио. Доступно с сола {evacuationFrom}."
   }
 }});
 
@@ -919,7 +920,7 @@ mergeText(TEXT.en.sim, {
   balance:"Game simplifications: work hours, energy units, water and air in “sols of reserve”, fast plant growth, and Earth answering the next morning (the radio signal itself takes only minutes; the team on Earth needs time to answer). Dose points are a risk model, not measured Mars doses.",
   request:"Earth reply: asked on sol {sent}, answered on sol {received}. The signal travelled about {min} minutes each way.",
   delay:"Right now a radio signal takes about {min} minutes to reach Earth.",
-  final:"Critical missions lead to Sunkar: power, life support, the airlock, water, the link and the rescue preparation. Optional missions make life easier. Leave on sols 27–30.",
+  final:"Critical missions lead to Sunkar: power, life support, the airlock, water, the link and the rescue preparation. Optional missions make life easier. Leave on sols {evacuationFrom}–{missionSols}.",
   fixed:"The airlock seal is replaced. The cabin holds pressure.",
   doneStep:"Done", done:"Done: {step}.",
   notebook:"Mission notebook", notebookEmpty:"Nothing repaired yet. Every finished step will be written here.",
@@ -934,7 +935,7 @@ mergeText(TEXT.en.sim, {
     limited:"Rescue just in time: the reserves were almost gone."},
   reason:{energy:"Not enough energy today.",parts:"No spare part left.",air:"Not enough air for this trip.",hours:"No work hours left today.",
     notDay:"Work is planned during the day.",queued:"Already planned.",done:"Already done.",nothing:"Nothing to do here now.",
-    notYet:"Opens on sol 27.",event:"Answer the event first.",unknown:"Not available.",needs:"First: {step}."},
+    notYet:"Opens on sol {evacuationFrom}.",event:"Answer the event first.",unknown:"Not available.",needs:"First: {step}."},
   missions:{power:"Restore electrical power",life:"Restore life support",pressure:"Repair the pressure leak",water:"Restore the water system",
     comms:"Restore communication with Earth",rescue:"Prepare for rescue",farm:"Restore the greenhouse",thermal:"Restore thermal control",
     rover:"Repair the rover",supplies:"Supplies",health:"Mark's health"},
@@ -967,7 +968,7 @@ mergeText(TEXT.en.sim, {
     roverDiag:"Check battery, motors and wheels.",roverFix:"One part. Opens the distant crate.",
     rest:"Two hours of rest lower fatigue by one.",seal:"One part. Fixes the leak for good.",
     beacon:"Needs the basic link.",lander:"Needs the power test. Uses the vehicle's own spares.",
-    depart:"Needs the beacon, route, vehicle, antenna cable and a holding airlock. Sols 27–30.",
+    depart:"Needs the beacon, route, vehicle, antenna cable and a holding airlock. Sols {evacuationFrom}–{missionSols}.",
     panel:"One part. Brings a broken panel back next sol.",clean:"Brings a dusty panel back next sol."},
   learn:{inspectArray:"Dust blocks sunlight, a crack breaks the circuit. Different faults need different fixes.",
     cable:"Voltage is like electrical pressure: it pushes current through the cable. A broken cable stops the flow.",
@@ -1005,7 +1006,7 @@ mergeText(TEXT.ru.sim, {
   balance:"Упрощения игры: рабочие часы, единицы энергии, вода и воздух в «солах запаса», быстрый рост растений и ответ Земли на следующее утро (сам радиосигнал идёт всего несколько минут, но людям на Земле нужно время на ответ). Очки дозы — модель риска, а не измерения на Марсе.",
   request:"Ответ Земли: запрос на соле {sent}, ответ на соле {received}. Сигнал шёл около {min} мин в одну сторону.",
   delay:"Сейчас радиосигнал идёт до Земли около {min} мин.",
-  final:"Критические миссии ведут к «Сұңқару»: энергия, жизнеобеспечение, шлюз, вода, связь и подготовка к спасению. Необязательные облегчают жизнь. Отлёт на солах 27–30.",
+  final:"Критические миссии ведут к «Сұңқару»: энергия, жизнеобеспечение, шлюз, вода, связь и подготовка к спасению. Необязательные облегчают жизнь. Отлёт на солах {evacuationFrom}–{missionSols}.",
   fixed:"Уплотнение шлюза заменено. Модуль держит давление.",
   doneStep:"Готово", done:"Готово: {step}.",
   notebook:"Журнал миссии", notebookEmpty:"Пока ничего не починено. Каждый выполненный шаг появится здесь.",
@@ -1020,7 +1021,7 @@ mergeText(TEXT.ru.sim, {
     limited:"Спасение в последний момент: запасы почти кончились."},
   reason:{energy:"Сегодня не хватает энергии.",parts:"Запчастей не осталось.",air:"Не хватит воздуха на этот выход.",hours:"Рабочие часы на сегодня кончились.",
     notDay:"Работы планируются днём.",queued:"Уже в плане.",done:"Уже сделано.",nothing:"Сейчас здесь нечего делать.",
-    notYet:"Откроется на соле 27.",event:"Сначала ответь на событие.",unknown:"Недоступно.",needs:"Сначала: {step}."},
+    notYet:"Откроется на соле {evacuationFrom}.",event:"Сначала ответь на событие.",unknown:"Недоступно.",needs:"Сначала: {step}."},
   missions:{power:"Восстановить электроснабжение",life:"Восстановить жизнеобеспечение",pressure:"Устранить утечку давления",water:"Восстановить водоснабжение",
     comms:"Восстановить связь с Землёй",rescue:"Подготовиться к спасению",farm:"Восстановить теплицу",thermal:"Восстановить терморегуляцию",
     rover:"Починить ровер",supplies:"Припасы",health:"Здоровье Марка"},
@@ -1053,7 +1054,7 @@ mergeText(TEXT.ru.sim, {
     roverDiag:"Проверить батарею, моторы и колёса.",roverFix:"Одна запчасть. Открывает дальний ящик.",
     rest:"Два часа отдыха снижают усталость на 1.",seal:"Одна запчасть. Устраняет утечку навсегда.",
     beacon:"Нужна базовая связь.",lander:"Нужна проверка выработки. Использует запчасти самого аппарата.",
-    depart:"Нужны маяк, маршрут, аппарат, кабель антенны и держащий шлюз. Солы 27–30.",
+    depart:"Нужны маяк, маршрут, аппарат, кабель антенны и держащий шлюз. Солы {evacuationFrom}–{missionSols}.",
     panel:"Одна запчасть. Сломанная панель заработает со следующего сола.",clean:"Пыльная панель заработает со следующего сола."},
   learn:{inspectArray:"Пыль закрывает свет, а трещина разрывает цепь. Разные поломки чинятся по-разному.",
     cable:"Напряжение похоже на давление электричества: оно толкает ток по кабелю. Порванный кабель останавливает ток.",
@@ -1086,12 +1087,12 @@ mergeText(TEXT.ru.sim, {
 mergeText(TEXT.en.ev, {
   earthContact:{title:"Earth hears the beacon",body:"Mission Control: “Mark, we receive your emergency beacon! We know you are alive. Restore the link so we can talk.”",ack:"Keep working",afterAck:"Earth knows Mark is alive. The signal took minutes; the answer came this morning."},
   earthLink:{title:"Basic link with Earth",body:"Mission Control: “We hear you clearly through the relay orbiter. Send power to communication and we will send forecasts.”",ack:"Understood",afterAck:"Relay orbiters pass messages between Mars and Earth."},
-  earthPlan:{title:"The rescue plan",body:"Mission Control: “Full link! Sunkar is already flying to Mars and will reach orbit on sol 30. Prepare the beacon, the route and the return vehicle, then leave on sols 27–30.”",ack:"Ready",afterAck:"A ship to Mars takes months, so the rescue had to start long before the storm."},
+  earthPlan:{title:"The rescue plan",body:"Mission Control: “Full link! Sunkar is already flying to Mars and will reach orbit on sol {missionSols}. Prepare the beacon, the route and the return vehicle, then leave on sols {evacuationFrom}–{missionSols}.”",ack:"Ready",afterAck:"A ship to Mars takes months, so the rescue had to start long before the storm."},
 });
 mergeText(TEXT.ru.ev, {
   earthContact:{title:"Земля слышит маяк",body:"Центр управления: «Марк, мы принимаем твой аварийный маяк! Мы знаем, что ты жив. Восстанови связь, чтобы мы могли говорить».",ack:"Работать дальше",afterAck:"Земля знает, что Марк жив. Сигнал шёл минуты, а ответ пришёл этим утром."},
   earthLink:{title:"Базовая связь с Землёй",body:"Центр управления: «Слышим тебя через орбитальный ретранслятор. Дай энергию на связь, и мы пришлём прогнозы».",ack:"Понял",afterAck:"Орбитальные ретрансляторы передают сообщения между Марсом и Землёй."},
-  earthPlan:{title:"План спасения",body:"Центр управления: «Полная связь! „Сұңқар“ уже летит к Марсу и выйдет на орбиту на соле 30. Подготовь маяк, маршрут и возвратный аппарат и отправляйся на солах 27–30».",ack:"Готов",afterAck:"Полёт к Марсу занимает месяцы, поэтому спасение началось задолго до бури."},
+  earthPlan:{title:"План спасения",body:"Центр управления: «Полная связь! „Сұңқар“ уже летит к Марсу и выйдет на орбиту на соле {missionSols}. Подготовь маяк, маршрут и возвратный аппарат и отправляйся на солах {evacuationFrom}–{missionSols}».",ack:"Готов",afterAck:"Полёт к Марсу занимает месяцы, поэтому спасение началось задолго до бури."},
 });
 TEXT.en.bip.warning.water = "We have less than three sols of water. Fix the leak and start the recycler.";
 TEXT.ru.bip.warning.water = "Воды меньше чем на три сола. Устрани утечку и запусти переработку.";

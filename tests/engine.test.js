@@ -34,9 +34,22 @@ function answerDefaults() {
   }
 }
 
+// Compact classic-training fixture retains the original 30-sol balance checks.
+// The production engineering campaign is tested separately for all 210 sols.
+function compactTraining(fn){
+  const saved={sols:CONFIG.missionSols,from:CONFIG.simulation.evacuationFrom,schedule:CONFIG.schedule};
+  CONFIG.missionSols=30;CONFIG.simulation.evacuationFrom=27;
+  CONFIG.schedule={...saved.schedule,finalStormSol:29,acts:[
+    {from:6,to:10,storms:1,flares:0,scrubber:0,random:[1,1]},
+    {from:11,to:20,storms:0,flares:1,scrubber:1,random:[2,3]},
+    {from:21,to:28,storms:0,flares:1,scrubber:0,random:[3,4]},
+  ]};
+  try{return fn();}finally{CONFIG.missionSols=saved.sols;CONFIG.simulation.evacuationFrom=saved.from;CONFIG.schedule=saved.schedule;}
+}
+
 /** Plays careful days until an event of `type` is open. Returns it or null. */
 function playUntil(type, options) {
-  newGame(options);
+  compactTraining(()=>newGame(options));
   for (let day = 0; day < 40 && STATE.status === "playing"; day++) {
     if (STATE.phase !== "day") skipToDecision();
     for (let event = getActiveEvent(); event; event = getActiveEvent()) {
@@ -388,7 +401,7 @@ test("a damaged, foreign or finished save never offers Continue (#9)", () => {
     "another version": JSON.stringify({ ...good, v: CONFIG.saveVersion + 1 }),
     "no state": JSON.stringify({ v: good.v, meta: good.meta }),
     "finished mission": JSON.stringify({ ...good, state: { ...good.state, status: "rescued" } }),
-    "sol out of range": JSON.stringify({ ...good, state: { ...good.state, sol: 99 } }),
+    "sol out of range": JSON.stringify({ ...good, state: { ...good.state, sol: CONFIG.missionSols + 1 } }),
     "unknown site": JSON.stringify({ ...good, state: { ...good.state, site: "olympus" } }),
     "negative oxygen": JSON.stringify({ ...good, state: { ...good.state, oxygen: -1 } }),
     "missing log": JSON.stringify({ ...good, state: { ...good.state, log: null } }),
@@ -437,7 +450,7 @@ test("a game over reports at most three decision chains, most expensive first", 
 
 // ---------- presentation ----------
 
-test("presentation act 3 always shows a storm on sol 22 and an X flare on sol 23 (#8)", () => {
+test("presentation act 3 shows a storm and X flare immediately after its start (#8)", () => {
   const noData = { mode: "archive", flares: [] };
   for (const solarData of [undefined, noData]) { // NASA archive, then no flare data at all
     for (let seed = 0; seed < 40; seed++) {
@@ -445,8 +458,8 @@ test("presentation act 3 always shows a storm on sol 22 and an X flare on sol 23
       const off = on("event", (event) => seen.push(`${event.sol}:${event.type}:${event.data.flareClass ?? ""}`));
       playMission({ seed, site: "gale", presentation: { act: 3 }, ...(solarData && { solarData }) });
       off();
-      assert.ok(seen.includes("22:storm:"), `seed ${seed}: storm on sol 22`);
-      assert.ok(seen.includes("23:flare:X"), `seed ${seed}: X flare on sol 23`);
+      assert.ok(seen.includes(`${CONFIG.presentation.acts[3].sol+CONFIG.presentation.stormAfter}:storm:`), `seed ${seed}: storm on sol 22`);
+      assert.ok(seen.includes(`${CONFIG.presentation.acts[3].sol+CONFIG.presentation.flareAfter}:flare:X`), `seed ${seed}: X flare on sol 23`);
     }
   }
   newGame({ presentation: { act: 3 } });
@@ -464,7 +477,7 @@ test("presentation never reads, writes or clears the player's save", () => {
 
 // ---------- balance ----------
 
-test("balance stays on target and no mission reaches an impossible state", () => {
+test("compact classic trainer retains its original balance and state invariants", () => compactTraining(() => {
   // tools/sim.js throws on impossible states, so these runs also check invariants.
   const count = 300;
   const smart = runBatch({ count, strategy: "smart" });
@@ -472,4 +485,4 @@ test("balance stays on target and no mission reaches an impossible state", () =>
   const smartRate = smart.wins / count;
   assert.ok(smartRate >= 0.4 && smartRate <= 0.6, `smart engineer wins ${smartRate}`);
   assert.ok(random.wins / count < 0.1, `random engineer wins ${random.wins / count}`);
-});
+}));

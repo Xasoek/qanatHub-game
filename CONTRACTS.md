@@ -124,3 +124,11 @@ the arrival callback. The UI guards callbacks against destination changes and re
 cancelled reservations. Mission ticks wait during the approach. A non-WebGL fallback
 opens the selected jobs directly. Walking is presentation state and is not saved; a
 reserved unfinished lesson can be resumed after loading.
+
+## Mission duration
+CONFIG.missionSols is 210. The rescue window begins at CONFIG.simulation.evacuationFrom
+(207); the last storm is on sol 209. Displayed rescue dates use translation parameters
+from CONFIG. New games store the duration in engine metadata. Loading a shorter legacy
+mission keeps its resources and completed work but rebuilds future scheduled events for
+the extended mission. Demo presets still cover only the last 20 or 10 sols. Ship motion
+advances one Martian day per mission sol and reaches Mars on the final configured sol.

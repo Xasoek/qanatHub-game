@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {CONFIG}from'../src/config.js';
 import assert from 'node:assert/strict';
 import {chromium}from'playwright';
 import {newGame,STATE,save,skipToDecision,planTask}from'../src/engine.js';
@@ -27,7 +28,7 @@ test('UI restores saved missions, varies new seeds, and preserves a normal game 
  const saved=await state(page);assert.equal(saved.sol,2);
  await page.reload();assert(await page.locator('#continue').isVisible());await page.locator('#continue').click();
  assert.match(await page.locator('#sol').textContent(),/^Sol 2 /);assert.equal(Number(await page.locator('#oxygen').textContent()),saved.oxygen);
- await menu(page,'#demo-start');assert.match(await page.locator('#sol').textContent(),/^Sol 21 /);
+ await menu(page,'#demo-start');assert.match(await page.locator('#sol').textContent(),new RegExp(`^Sol ${CONFIG.presentation.acts[3].sol} `));
  assert.equal((await state(page)).seed,saved.seed);
  await menu(page,'#demo-exit');assert.match(await page.locator('#sol').textContent(),/^Sol 2 /);
  assert.equal((await state(page)).seed,saved.seed);

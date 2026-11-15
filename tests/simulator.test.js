@@ -67,11 +67,11 @@ test("simulator saves and restores reserved plans and repairs",()=>{
     endSol();assert(STATE.sim.inspected);
   }finally{delete globalThis.localStorage;}
 });
-test("a complete 30-sol simulator mission requires the prepared surface return",()=>{
+test("a complete 210-sol simulator mission requires the prepared surface return",()=>{
   // The campaign bot plays through the public API; see tests/campaign.test.js for the balance.
-  const rescued=playCampaign({seed:3,site:"gale",difficulty:"cadet",style:"sensible"});
+  const rescued=playCampaign({seed:7,site:"gale",difficulty:"cadet",style:"sensible"});
   assert.equal(rescued.status,"rescued");
-  assert.equal(rescued.sol,30);
+  assert.equal(rescued.sol,CONFIG.missionSols);
   assert(Object.values(rescued.simulation.ready).every(Boolean));
   newGame({simulation:true,seed:3,difficulty:"cadet"});
   for(let d=0;d<CONFIG.missionSols&&STATE.status==="playing";d++){

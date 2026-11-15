@@ -1,11 +1,12 @@
+import {CONFIG} from "../config.js";
 // Orbital mechanics for the rescue ship: a Hohmann transfer from Earth to Mars.
 // Real constants; circular, coplanar planet orbits are a teaching simplification (noted in the UI).
 export const AU_KM = 149_597_870.7;
 export const GM_SUN = 1.32712440018e11; // km^3/s^2
 export const LIGHT_KMS = 299_792.458;
 export const SOL_DAYS = 1.0275; // one sol in Earth days (24 h 39.6 min)
-/** Game time compression: each mission sol moves the rescue ship 7 days along its flight. */
-export const SHIP_DAYS_PER_SOL = 7;
+/** Game time compression: one mission sol advances one Martian day along its flight. */
+export const SHIP_DAYS_PER_SOL = SOL_DAYS;
 export const ORBITS = { // semi-major axis in AU, period in days
   mercury: { a: 0.387, period: 87.97 }, venus: { a: 0.723, period: 224.7 }, earth: { a: 1, period: 365.256 },
   mars: { a: 1.524, period: 686.98 }, jupiter: { a: 5.203, period: 4332.6 }, saturn: { a: 9.537, period: 10759 },
@@ -27,7 +28,7 @@ const angleAt = (planet, day, phase = 0) => phase + (2 * Math.PI * day) / ORBITS
  * Where everything is on a given mission sol. The ship left Earth at day 0 and reaches Mars
  * at TRANSFER_DAYS, timed so that it lands on sol CONFIG.missionSols.
  */
-export function missionSnapshot(sol, missionSols = 30) {
+export function missionSnapshot(sol, missionSols = CONFIG.missionSols) {
   const remaining = Math.max(0, (missionSols - sol) * SHIP_DAYS_PER_SOL);
   const day = Math.max(0, TRANSFER_DAYS - remaining);
   const M = Math.PI * Math.min(1, day / TRANSFER_DAYS);

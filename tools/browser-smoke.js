@@ -66,7 +66,7 @@ test("the standalone index.html plays offline on desktop and mobile", async (t) 
       assert.equal(Number(await page.locator("#energy").textContent()), energy - 2);
       await page.locator("#end").click();
       await page.locator("#advance").click();
-      assert.match(await page.locator("#sol").textContent(), /^Sol 2 of 30/);
+      assert.match(await page.locator("#sol").textContent(), new RegExp(`^Sol 2 of ${CONFIG.missionSols}`));
       // Sol 1 of the campaign: the airlock leaks and the CO2 cartridge is spent (CONFIG.simulation).
       const loss = CONFIG.simulation.sealLoss + CONFIG.simulation.co2Loss;
       assert.equal(Number(await page.locator("#oxygen").textContent()), Math.round((Number(oxygen) - loss) * 100) / 100);
@@ -74,7 +74,7 @@ test("the standalone index.html plays offline on desktop and mobile", async (t) 
 
       await page.locator("#language").click();
       assert.equal(await page.locator("#game-title").textContent(), "Один сол до помощи");
-      assert.match(await page.locator("#sol").textContent(), /^Сол 2 из 30/);
+      assert.match(await page.locator("#sol").textContent(), new RegExp(`^Сол 2 из ${CONFIG.missionSols}`));
       assert.match(await page.locator("#solar").textContent(), /Архив NASA/);
       const fitsViewport = await page.evaluate(() =>
         document.documentElement.scrollWidth <= document.documentElement.clientWidth);
@@ -92,7 +92,7 @@ test("the standalone index.html plays offline on desktop and mobile", async (t) 
       assert.equal(await next.textContent(), "Вперёд!");
       await page.keyboard.press("Escape");
       await page.locator("#guide-layer").waitFor({ state: "hidden" });
-      assert.match(await page.locator("#sol").textContent(), /^Сол 2 из 30/);
+      assert.match(await page.locator("#sol").textContent(), new RegExp(`^Сол 2 из ${CONFIG.missionSols}`));
       assert.deepEqual(errors, [], "the browser reported uncaught exceptions");
       // The page is loaded twice (the reload above); it never requests anything but index.html.
       assert.deepEqual([...new Set(requests)], [url], "the game requested resources outside index.html");

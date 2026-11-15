@@ -143,7 +143,7 @@ export function newGame({ site = CONFIG.defaults.site, difficulty = CONFIG.defau
   const preset = presentation ? CONFIG.presentation.acts[act] : {};
   const { oxygen, food } = CONFIG.difficulties[difficulty];
   meta = {
-    elapsedInPhase: 0, rng: (seed >>> 0) ^ 0x9e3779b9, nextId: 1,
+    missionSols: CONFIG.missionSols, elapsedInPhase: 0, rng: (seed >>> 0) ^ 0x9e3779b9, nextId: 1,
     schedule: {}, queue: [], active: null, autoPaused: false,
     blocked: [], blockedBy: {}, blackoutNight: null, zeroCubesNext: null, scrubberLog: null,
     coldNights: 0, damageStreak: 0, samples: 0, forecastAsked: false, flaresUsed: 0,
@@ -907,6 +907,12 @@ export function load() {
   if (!saved) return null;
   STATE = saved.state;
   meta = saved.meta;
+  if(meta.missionSols!==CONFIG.missionSols){
+    const extended=buildSchedule();
+    for(const sol of Object.keys(meta.schedule))if(Number(sol)>STATE.sol)delete meta.schedule[sol];
+    for(const [sol,event]of Object.entries(extended))if(Number(sol)>STATE.sol)meta.schedule[sol]=event;
+    meta.missionSols=CONFIG.missionSols;
+  }
   if (STATE.sim) normalizeSimulation(STATE.sim); // saves from before the engineering campaign
   meta.warned ??= { oxygen: false, food: false };
   return STATE;

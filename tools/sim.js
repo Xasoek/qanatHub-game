@@ -8,7 +8,7 @@ import {
   STATE, allocate, endSol, getActiveEvent, getEndReport, newGame, resolveEvent, skipToDecision,
 } from "../src/engine.js";
 
-const MAX_STEPS = 200;
+const MAX_STEPS = () => CONFIG.missionSols * 4;
 
 function seededRandom(seed) {
   let state = (seed >>> 0) ^ 0x2545f491;
@@ -116,7 +116,7 @@ export function playMission({ strategy = "smart", seed = 0, site, difficulty, pr
   const player = STRATEGIES[strategy](seed);
   newGame({ seed, site, difficulty, presentation, solarData });
   for (let step = 0; STATE.status === "playing"; step++) {
-    if (step > MAX_STEPS) throw new Error(`Mission did not finish (seed ${seed})`);
+    if (step > MAX_STEPS()) throw new Error(`Mission did not finish (seed ${seed})`);
     if (STATE.phase !== "day") skipToDecision();
     if (STATE.status !== "playing") break;
     resolveAll(player, seed);

@@ -1,14 +1,15 @@
 // Role 1 owns the game balance and the state machine's shared settings.
 // Every gameplay number lives here. tools/sim.js checks the balance targets.
+const MISSION_SOLS = 210;
 export const CONFIG = {
-  missionSols: 30,
+  missionSols: MISSION_SOLS,
   field: { brushColumns: 24, brushRows: 12, brushRadius: .065, clearFraction: .82, antennaTolerance: 8, walkSpeed: 3.2, panelClamps: 4, seedSites: 6, waterRange: [40, 70] },
   simulation: {
     // Game design, not physics: the Arcadia base was built with a larger array to pay for heating.
     generationBonus: 0, generationBySite: { gale: 0, jezero: 0, arcadia: 1 }, cableBonus: 2, hours: 6, batteryCapacity: 6, batteryInitial: 2, drawLimit: 2,
     startingDusty: 2, startingDustyBySite: { gale: 2, jezero: 2, arcadia: 1 }, startingDamage: 50, startingBroken: 1, sealLoss: .5,
     patchSols: 3, patchDamageReturn: 10, spares: 6, nightBase: 1,
-    evacuationFrom: 27, evacuationOxygen: .5,
+    evacuationFrom: MISSION_SOLS - 3, evacuationOxygen: .5,
     labor: { air: 0, farm: 1, repair: .5, heat: 0, comms: .5, science: 1 },
     // Engineering campaign (IMPLEMENTATION_PLAN.md). Hours, energy units and water in
     // "sols of reserve" are game units, not measured hardware values.
@@ -167,10 +168,10 @@ export const CONFIG = {
     cropChoiceSol: 2,
     acts: [
       { from: 6, to: 10, storms: 1, flares: 0, scrubber: 0, random: [1, 1] },
-      { from: 11, to: 20, storms: 0, flares: 1, scrubber: 1, random: [2, 3] },
-      { from: 21, to: 28, storms: 0, flares: 1, scrubber: 0, random: [3, 4] },
+      { from: 11, to: Math.floor(MISSION_SOLS * 2 / 3), storms: 0, flares: 1, scrubber: 1, random: [2, 3] },
+      { from: Math.floor(MISSION_SOLS * 2 / 3) + 1, to: MISSION_SOLS - 2, storms: 0, flares: 1, scrubber: 0, random: [3, 4] },
     ],
-    finalStormSol: 29,
+    finalStormSol: MISSION_SOLS - 1,
     randomPool: ["dustyPanels", "roverCrate", "coldNight"],
   },
 
@@ -183,10 +184,7 @@ export const CONFIG = {
 
   // Presentation mode (TZ 3.2): start from an act with ready reserves at x4.
   // Acts 2 and 3 add a showcase storm and a strong flare right after the start.
-  // Act 3 reaches the ending in about 5 minutes. With careful play and the NASA archive
-  // the simulator reaches the rescue in ~99% of act 3 demos on Gale and Arcadia, ~23% on
-  // Jezero (double damage), so demo on Gale. Act 2 is harder (~25%): it opens with a
-  // storm and an X flare and still has 20 sols to go.
+  // The previews retain short playable endings: the last 20 or 10 sols of the campaign.
   presentation: {
     speed: 4,
     stormAfter: 1, // sols after the start
@@ -194,8 +192,8 @@ export const CONFIG = {
     flareClass: "X", // used when the NASA data has no X flare
     acts: {
       1: { sol: 1, showcase: false },
-      2: { sol: 11, oxygen: 13, food: 18, damage: 0, crop: { type: "radish", progress: 2 }, showcase: true },
-      3: { sol: 21, oxygen: 9, food: 12, damage: 0, crop: { type: "potato", progress: 4 }, showcase: true },
+      2: { sol: MISSION_SOLS - 19, oxygen: 13, food: 18, damage: 0, crop: { type: "radish", progress: 2 }, showcase: true },
+      3: { sol: MISSION_SOLS - 9, oxygen: 9, food: 12, damage: 0, crop: { type: "potato", progress: 4 }, showcase: true },
     },
   },
 
