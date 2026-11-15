@@ -9,6 +9,8 @@ const key='oneSolToRescue.save';
 async function withPage(t,fn,options={}){
  const browser=await chromium.launch();t.after(()=>browser.close());
  const context=await browser.newContext({viewport:{width:1280,height:800},...options});
+ // These checks are about saves, data and blocked systems; the first-visit guide is tested in browser-smoke.js.
+ await context.addInitScript(()=>localStorage.setItem('oneSolToRescue.guide','done'));
  const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await fn(page,context);
  assert.deepEqual(errors,[]);

@@ -2,7 +2,8 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import { CONFIG } from "../src/config.js";
-import { GUIDE_KEY, GUIDE_STEPS, guideSeen, guideVars, markGuideSeen } from "../src/guide.js";
+import { GUIDE_KEY, GUIDE_STEPS, guideSeen, guideVars, markGuideSeen, rowBadge, rowName } from "../src/guide.js";
+import { ICONS } from "../src/icons.js";
 import { TEXT, t } from "../src/text.js";
 
 afterEach(() => {
@@ -26,11 +27,17 @@ function stepParts(step) {
   return ["title", ...Array.from({ length: step.lines }, (_, i) => "l" + (i + 1)), "tip"];
 }
 
+/** Everything the player reads in the guide: step lines, then each control row. */
 function guideText(lang) {
   const copy = (key, vars) => t(lang, key, vars);
   const vars = guideVars(copy);
-  return GUIDE_STEPS.flatMap((step) => stepParts(step).map((part) => copy(`guide.steps.${step.id}.${part}`, vars)));
+  return GUIDE_STEPS.flatMap((step) => [
+    ...stepParts(step).map((part) => copy(`guide.steps.${step.id}.${part}`, vars)),
+    ...(step.rows ?? []).map((row) => [rowBadge(row, copy), rowName(row, copy), copy("guide.rows." + row.id, vars)].join(" ")),
+  ]);
 }
+
+const rowIds = (stepId) => GUIDE_STEPS.find((step) => step.id === stepId).rows.map((row) => row.id);
 
 test("the guide is offered once and keeps its status apart from the mission save", () => {
   const save = JSON.stringify({ v: CONFIG.saveVersion, state: { sol: 4 } });
@@ -52,8 +59,9 @@ test("the guide works without storage or with blocked storage", () => {
   assert.equal(markGuideSeen(), false);
 });
 
-test("the guide has six steps with every line in English and Russian", () => {
-  assert.deepEqual(GUIDE_STEPS.map((step) => step.id), ["mission", "base", "resources", "plan", "survive", "rescue"]);
+test("the guide has every step and every control line in English and Russian", () => {
+  assert.deepEqual(GUIDE_STEPS.map((step) => step.id),
+    ["mission", "base", "resources", "bottom", "systems", "screen", "work", "survive", "rescue"]);
   for (const lang of ["en", "ru"]) {
     for (const key of ["open", "title", "progress", "otherLanguage", "back", "next", "skip", "finish", "tipLabel",
       "offer.text", "offer.open", "offer.dismiss"]) {
@@ -61,10 +69,34 @@ test("the guide has six steps with every line in English and Russian", () => {
     }
     for (const line of guideText(lang)) {
       assert.doesNotMatch(line, /\[|\{|\}/, `${lang}: every key and number resolves in "${line}"`);
-      assert.ok(line.length <= 200, `${lang}: lines stay short for children: "${line}"`);
+      assert.ok(line.length <= 230, `${lang}: lines stay short for children: "${line}"`);
     }
   }
   assert.deepEqual(Object.keys(TEXT.en.guide.steps), Object.keys(TEXT.ru.guide.steps));
+  assert.deepEqual(Object.keys(TEXT.en.guide.rows), Object.keys(TEXT.ru.guide.rows));
+  for (const step of GUIDE_STEPS) {
+    for (const name of [...step.icons, ...(step.rows ?? []).map((row) => row.icon).filter(Boolean)]) {
+      assert.ok(Object.hasOwn(ICONS, name), `${step.id}: the game has the icon "${name}"`);
+    }
+  }
+});
+
+test("the guide explains every button of the bottom bar, the six systems, the top and side controls", () => {
+  // Bottom bar: the phase button in all three forms, pause, speeds, skip, − / + and the free-cube counter.
+  assert.deepEqual(rowIds("bottom"), ["start", "end", "advance", "pause", "speed", "skip", "plusMinus", "free"]);
+  assert.deepEqual(rowIds("systems"), CONFIG.systems, "one row for each system card");
+  assert.deepEqual(rowIds("screen"), ["help", "sound", "language", "menu", "data", "plan", "sensors", "planet", "zoom", "home"]);
+  assert.deepEqual(rowIds("work"), ["missions", "status", "job", "cost", "reason", "draw", "rest", "close"]);
+  for (const lang of ["en", "ru"]) {
+    const copy = (key, vars) => t(lang, key, vars);
+    const bottom = GUIDE_STEPS.find((step) => step.id === "bottom").rows;
+    // The phase buttons and the systems are named exactly as the player sees them.
+    assert.deepEqual(bottom.slice(0, 3).map((row) => rowBadge(row, copy)), ["game.next", "game.end", "game.advance"].map((key) => copy(key)));
+    for (const system of CONFIG.systems) {
+      const row = GUIDE_STEPS.find((step) => step.id === "systems").rows.find((item) => item.id === system);
+      assert.equal(rowName(row, copy), copy("story.systems." + system));
+    }
+  }
 });
 
 test("the guide numbers and labels come from the game rules and interface", () => {
