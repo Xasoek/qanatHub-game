@@ -51,7 +51,7 @@ test("the standalone index.html plays offline on desktop and mobile", async (t) 
       await page.locator("#guide-layer").waitFor({ state: "hidden" });
       await page.reload();
       assert.ok(await page.locator("#guide-layer").isHidden(), "a returning player is not shown the guide again");
-      await page.locator("#start").click();
+      await page.locator("#start").click();await page.locator("#intro-skip").click();
       // The base is a WebGL canvas; browsers without WebGL 2 get the SVG fallback.
       await page.locator("#base canvas, #base svg").first().waitFor();
       assert.match(await page.locator("#solar").textContent(), /NASA archive/);

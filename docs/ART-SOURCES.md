@@ -25,3 +25,10 @@
 Это UI-прототип с демонстрационными запасами и научными архивными записями. Движок 30-соловой миссии ещё не подключён. Общие STATE/API и src-файлы других ролей не изменены. Ветка: role-2/ui.
 
 Three.js: MIT, текст в THREE-LICENSE.txt. Установлены навыки frontend-design, threejs-geometry, threejs-materials, threejs-shaders, threejs-loaders, threejs-animation.
+
+## Video prologue
+`src/assets/intro-30s.mp4` is the team's supplied 30-second introduction. The supplied
+Full HD H.264/AAC film was re-encoded at its original 1920×1080 resolution with H.264
+CRF 23 and AAC 128 kb/s to reduce the offline download. No scenes were added or removed.
+The build embeds it as a video data URL; no streaming service or runtime request is used.
+This is a narrative film, not NASA scientific footage or a live data feed.

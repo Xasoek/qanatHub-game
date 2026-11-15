@@ -4,7 +4,7 @@ const browser=await chromium.launch({channel:'chrome',args:['--use-gl=angle','--
 try{
  const page=await browser.newPage({viewport:{width:1440,height:900},offline:true});const errors=[];
  page.on('pageerror',e=>errors.push(e.message));
- await page.goto(new URL('../index.html',import.meta.url).href);await page.locator('#start').click();await page.locator('#base canvas').waitFor();
+ await page.goto(new URL('../index.html',import.meta.url).href);await page.locator('#start').click();await page.locator('#intro-skip').click();await page.locator('#base canvas').waitFor();
  await page.locator('.world-label[data-object="panels"]').click();
  assert(await page.locator('#work-screen').isHidden());assert(await page.locator('#field-layer').isHidden());
  assert.equal(await page.locator('[data-walking="panels"]').count(),1);

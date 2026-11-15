@@ -1,0 +1,26 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {chromium} from 'playwright';
+test('embedded film plays offline, pauses the mission, skips, finishes and replays without changing the save',async t=>{
+ const browser=await chromium.launch();t.after(()=>browser.close());
+ const page=await browser.newPage({offline:true,viewport:{width:1280,height:800}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(new URL('../index.html',import.meta.url).href);await page.locator('#start').click();
+ const layer=page.locator('#intro-screen');assert(await layer.isVisible());
+ await page.waitForFunction(()=>document.querySelector('#intro-video').readyState>=2);
+ if(await page.locator('#intro-video').evaluate(v=>v.paused))await page.locator('#intro-next').click();
+ await page.waitForFunction(()=>document.querySelector('#intro-video').currentTime>.25);
+ const duration=await page.locator('#intro-video').evaluate(v=>v.duration);assert(duration>29&&duration<31);
+ assert(await page.locator('#intro-video').evaluate(v=>v.currentSrc.startsWith('data:video/mp4;')));
+ const saved=await page.evaluate(()=>localStorage.getItem('oneSolToRescue.save'));
+ await page.locator('#intro-next').click();assert(await page.locator('#intro-video').evaluate(v=>v.paused));
+ await page.locator('#intro-sound').click();assert(await page.locator('#intro-video').evaluate(v=>v.muted));
+ assert.equal(await page.evaluate(()=>localStorage.getItem('oneSolToRescue.save')),saved);
+ await page.locator('#intro-skip').click();assert(await layer.isHidden());
+ await page.locator('#menu').click();await page.locator('#watch').click();assert(await layer.isVisible());
+ await page.waitForFunction(()=>document.querySelector('#intro-video').readyState>=2);
+ await page.locator('#intro-video').evaluate(async v=>{v.currentTime=v.duration-.15;await v.play();});
+ await layer.waitFor({state:'hidden'});assert.equal(await page.evaluate(()=>localStorage.getItem('oneSolToRescue.save')),saved);
+ await page.locator('#menu').click();await page.locator('#mission-menu').click();await page.locator('#continue').click();
+ assert(await layer.isHidden());
+ assert.deepEqual(errors,[]);
+});

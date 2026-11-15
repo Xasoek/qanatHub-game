@@ -1,3 +1,4 @@
+import INTRO_VIDEO from "./assets/intro-30s.mp4";
 import { createFieldWork } from "./field-work.js";
 // Role 2: game interface over the 3D outpost. The UI reads STATE and changes it only through the engine API.
 import { ART_CREDITS, createWorld, hasCapableGpu, missionSnapshot, renderBase, renderProfile } from "./art.js";
@@ -8,7 +9,7 @@ import {
   skipToDecision, tick, planTask, unplanTask, taskAvailable, simulationPreview, drawBattery, reviewSol, save, missionBoard, taskReason,
   beginFieldTask, finishFieldTask, fieldReadings,
 } from "./engine.js";
-import { DAILY_TASKS, STORY_SOURCES, TRAINING_TASKS, playIntro, t } from "./text.js";
+import { DAILY_TASKS, STORY_SOURCES, TRAINING_TASKS, t } from "./text.js";
 import { createGuide, guideSeen, markGuideSeen } from "./guide.js";
 import { icon } from "./icons.js";
 
@@ -51,7 +52,7 @@ function createSound() {
 
 export async function mountGame(root) {
   let lang = "en";
-  // The intro cutscene is removed for now; the game opens on the mission setup.
+  // The setup opens first; each new mission plays the embedded prologue.
   let screen = "setup";
   let returnScreen;
   let before;
@@ -76,7 +77,7 @@ export async function mountGame(root) {
   let demoRunning=false;
   let savedSolar=false;
   let lastSeed=null;
-  let intro=null, introFrame=null, introPosition=null;
+  let intro=null;
   const memo = {};
   const changed = (key, sig) => { if (memo[key] === sig) return false; memo[key] = sig; return true; };
 
@@ -166,9 +167,10 @@ export async function mountGame(root) {
       <section id="ending" class="modal ending" hidden aria-live="polite"></section>
       <button id="restart" type="button" class="primary restart" hidden></button>
     </section>
-    <section id="intro-screen" class="sheet intro-sequence" hidden aria-labelledby="intro-caption">
-      <div id="intro-art" role="img"></div><p id="intro-progress"></p><h2 id="intro-caption"></h2>
-      <div class="intro-actions"><button id="intro-next" type="button"></button><button id="intro-skip" type="button"></button></div>
+    <section id="intro-screen" class="intro-video-screen" hidden role="dialog" aria-modal="true" aria-labelledby="intro-caption">
+      <video id="intro-video" playsinline preload="metadata" controls disablepictureinpicture controlslist="nodownload noplaybackrate"></video>
+      <div class="intro-video-head"><h2 id="intro-caption"></h2><p id="intro-progress" aria-live="polite"></p></div>
+      <div class="intro-actions"><button id="intro-next" type="button"></button><button id="intro-sound" type="button"></button><button id="intro-skip" type="button" class="primary"></button></div>
     </section>
     <section id="work-screen" class="sheet work-screen" hidden role="dialog" aria-labelledby="work-title">
       <div class="sheet-head"><h2 id="work-title"></h2><button id="work-close" type="button"></button></div>
@@ -293,7 +295,7 @@ export async function mountGame(root) {
       world = createWorld(base, { stateRoot: root, onPick: pick });
       base.querySelector("svg")?.remove();
       root.classList.remove("flat");
-      world.setPaused(matchMedia("(orientation: portrait)").matches);
+      world.setPaused(matchMedia("(orientation: portrait)").matches||Boolean(intro));
       render();
     } catch (error) {
       console.info("3D view unavailable, using the 2D scene:", error.message);
@@ -449,6 +451,7 @@ export async function mountGame(root) {
       simulation: !presentation, seed: presentation?9:daily?dailySeed():freshSeed(), ...(presentation ? { presentation: { act: presentation } } : {}) });
     demoRunning=Boolean(presentation);
     beginMission(STATE);
+    if(!presentation)watchIntro();
   }
 
   on("phase", ({ phase }) => {
@@ -987,20 +990,44 @@ export async function mountGame(root) {
   }
 
   function renderIntro(){
-    if(!introFrame)return;
-    const n=introPosition.n;
-    find("intro-art").innerHTML=renderBase({phase:n===5?"morning":"day",weather:n===3||n===4?"storm":"clear",panels:{broken:n===5?1:0,dusty:n===5?2:0},crop:{progress:1}});
-    find("intro-art").setAttribute("aria-label",copy(introFrame.textKey));
-    find("intro-caption").textContent=copy(introFrame.textKey);
-    find("intro-progress").textContent=n+" / "+introPosition.total;
-    text("intro-next","intro.next");text("intro-skip","intro.skip");
+    if(!intro)return;
+    const video=find("intro-video");
+    text("intro-caption","intro.videoTitle");text("intro-skip","intro.skip");
+    text("intro-next",video.paused?"intro.playVideo":"intro.pauseVideo");
+    text("intro-sound",video.muted?"intro.unmuteVideo":"intro.muteVideo");
   }
   function watchIntro(){
-    menuOpen=false;find("menu-panel").hidden=true;
-    intro?.stop();find("intro-screen").hidden=false;
-    intro=playIntro({render:(frame,position)=>{introFrame=frame;introPosition=position;renderIntro();},onFinish:()=>{find("intro-screen").hidden=true;intro=null;}});
+    cancelApproach();menuOpen=false;find("menu-panel").hidden=true;
+    intro?.stop();
+    const layer=find("intro-screen"),video=find("intro-video"),opener=document.activeElement;
+    const siblings=[...root.children].filter(el=>el!==layer).map(el=>[el,el.inert]);
+    siblings.forEach(([el])=>el.inert=true);layer.hidden=false;world?.setPaused(true);
+    function finish(){
+      if(!intro)return;
+      intro=null;video.pause();video.removeAttribute("src");video.load();layer.hidden=true;
+      siblings.forEach(([el,value])=>el.inert=value);
+      world?.setPaused(matchMedia("(orientation: portrait)").matches||field.isOpen);
+      render();if(opener?.isConnected&&opener.offsetParent!==null)opener.focus();else if(screen==="mission")find("field-next").focus();
+    }
+    intro={stop:finish,skip:finish};video.src=INTRO_VIDEO;video.muted=!sound.enabled;
+    find("intro-progress").textContent="";renderIntro();find("intro-skip").focus();
+    video.play().catch(()=>{if(intro){text("intro-progress","intro.playPrompt");renderIntro();}});
   }
-  listen("intro-next",()=>intro?.next());listen("intro-skip",()=>intro?.skip());
+  const introVideo=find("intro-video");
+  introVideo.addEventListener("ended",()=>intro?.stop());
+  introVideo.addEventListener("play",renderIntro);introVideo.addEventListener("pause",renderIntro);
+  introVideo.addEventListener("error",()=>{if(intro){text("intro-progress","intro.videoError");renderIntro();}});
+  listen("intro-next",()=>{if(!intro)return;if(introVideo.paused)introVideo.play().catch(()=>text("intro-progress","intro.playPrompt"));else introVideo.pause();});
+  listen("intro-sound",()=>{introVideo.muted=!introVideo.muted;renderIntro();});
+  listen("intro-skip",()=>intro?.skip());
+  find("intro-screen").addEventListener("keydown",e=>{
+    if(e.key==="Escape"){e.stopPropagation();intro?.skip();}
+    if(e.key==="Tab"){
+      const buttons=[...find("intro-screen").querySelectorAll("button")];
+      if(e.shiftKey&&document.activeElement===buttons[0]){e.preventDefault();buttons.at(-1).focus();}
+      else if(!e.shiftKey&&document.activeElement===buttons.at(-1)){e.preventDefault();buttons[0].focus();}
+    }
+  });
   listen("watch",watchIntro);
   listen("guide-open", () => { cancelApproach();menuOpen = false; render(); guide.open(find("menu")); });
   listen("help", () => { cancelApproach();menuOpen = false; render(); guide.open(find("help")); });
@@ -1054,7 +1081,7 @@ export async function mountGame(root) {
   // ---------- real-time loop: the engine runs the sol, the UI redraws the HUD ----------
   // Landscape only: in portrait the scene and the mission (including the storm timer) wait.
   const portrait = matchMedia("(orientation: portrait)");
-  const applyOrientation = () => { root.classList.toggle("portrait", portrait.matches); world?.setPaused(portrait.matches||field.isOpen); };
+  const applyOrientation = () => { root.classList.toggle("portrait", portrait.matches); world?.setPaused(portrait.matches||field.isOpen||Boolean(intro));if(portrait.matches)introVideo.pause(); };
   portrait.addEventListener("change", applyOrientation);
   applyOrientation();
   let lastSecond = null;

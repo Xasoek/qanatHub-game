@@ -5,7 +5,7 @@ try{
  const p=await b.newPage({viewport:{width:1440,height:860},offline:true});const errors=[];
  p.on('pageerror',e=>errors.push(e.message));p.on('console',m=>{if(m.type()==='error')errors.push(m.text().slice(0,200))});
  await p.goto(new URL('../index.html',import.meta.url).href);if(await p.locator('#guide-layer').isVisible())await p.locator('#guide-skip').click();
- await p.locator('#start').click();
+ await p.locator('#start').click();await p.locator('#intro-skip').click();
  await p.locator('#base canvas').waitFor();await p.waitForTimeout(800);
  if(process.env.ONE_SOL_PREVIEW)await p.screenshot({path:process.env.ONE_SOL_PREVIEW,type:'jpeg',quality:88});
  await p.locator('#next').click();await p.locator('#work-open').click();

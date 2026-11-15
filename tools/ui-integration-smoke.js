@@ -21,7 +21,7 @@ async function skipGuide(page){if(await page.locator('#guide-layer').isVisible()
 async function state(page){return page.evaluate(key=>JSON.parse(localStorage.getItem(key)).state,key);}
 
 test('UI restores saved missions, varies new seeds, and preserves a normal game across a repeatable demo',async t=>withPage(t,async page=>{
- await page.goto(url);await skipGuide(page);await page.locator('#start').click();await page.locator('#next').click();
+ await page.goto(url);await skipGuide(page);await page.locator('#start').click();await page.locator('#intro-skip').click();await page.locator('#next').click();
  await page.locator('#system-air [data-delta="1"]').click();await page.locator('#system-air [data-delta="1"]').click();
  await page.locator('#end').click();await page.locator('#advance').click();
  const saved=await state(page);assert.equal(saved.sol,2);
@@ -31,14 +31,14 @@ test('UI restores saved missions, varies new seeds, and preserves a normal game 
  assert.equal((await state(page)).seed,saved.seed);
  await menu(page,'#demo-exit');assert.match(await page.locator('#sol').textContent(),/^Sol 2 /);
  assert.equal((await state(page)).seed,saved.seed);
- await menu(page,'#mission-menu');await page.locator('#start').click();await menu(page,'#mission-menu');
+ await menu(page,'#mission-menu');await page.locator('#start').click();await page.locator('#intro-skip').click();await menu(page,'#mission-menu');
  assert.notEqual((await state(page)).seed,saved.seed);
  // A damaged save must not leave an unusable Continue control.
  await page.evaluate(key=>localStorage.setItem(key,'{"broken":true}'),key);await page.reload();
  assert(await page.locator('#continue').isHidden());
- // The optional five-frame introduction remains reachable from the menu.
+ // The video prologue remains reachable from the menu.
  await menu(page,'#watch');assert(await page.locator('#intro-screen').isVisible());
- await page.locator('#intro-next').click();assert.equal(await page.locator('#intro-progress').textContent(),'2 / 5');
+ assert(await page.locator('#intro-video').getAttribute('src'));await page.locator('#intro-next').click();
  await page.locator('#intro-skip').click();assert(await page.locator('#start').isVisible());
 }));
 
@@ -50,7 +50,7 @@ for(const live of [true,false])test('UI NASA selection '+(live?'shows successful
   await route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify(data)});
  });
  await page.goto(url);await skipGuide(page);assert.equal(requests,0);
- await page.locator('#data-cards [data-value="live"]').click();await page.locator('#start').click();
+ await page.locator('#data-cards [data-value="live"]').click();await page.locator('#start').click();await page.locator('#intro-skip').click();
  await page.locator('#next').waitFor();assert(requests>0);
  assert.match(await page.locator('#solar').textContent(),live?/Live NASA data.*\d{4}-\d{2}-\d{2}/:/NASA archive/);
  if(!live)assert.match(await page.locator('#warning').textContent(),/Live NASA data is unavailable/);
