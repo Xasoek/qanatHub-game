@@ -102,3 +102,8 @@ completed steps; `taskReason(key)` returns `null` or why a step cannot be planne
 and `rating` (`exceptional|operational|damaged|limited`, rescues only). Older saves are filled in by
 `normalizeSimulation` on `load()`. The air and water rules live once in `src/simulator.js` (`airLoss`, `waterUse`),
 used by both the engine and `simulationPreview()`. Balance bots: `tools/campaign-bot.js`.
+
+## Mission of the day
+`dailySeed(date = new Date())` (engine) returns the UTC date as `YYYYMMDD`. The setup button `#daily-mission` starts a
+normal campaign with that seed and asks for the last 30 days of DONKI flares (`loadSolarData({mode:"live"})`), falling
+back to the archive with its notice. Everyone who starts on the same UTC date gets the same events.

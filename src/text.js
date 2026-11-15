@@ -1331,3 +1331,19 @@ Object.assign(TEXT.ru, { guide: {
     },
   },
 } });
+
+// Role 4: remaining TZ terms, the honesty line about real flares, and the new setup/sources labels.
+Object.assign(TEXT.en.bip.term, {
+  panels: "Solar panels turn sunlight into electricity; dust on them means less power.",
+  lifeSupport: "Life support keeps the air, water and temperature inside the base safe for people.",
+});
+Object.assign(TEXT.ru.bip.term, {
+  panels: "Солнечные панели превращают солнечный свет в электричество; пыль на них уменьшает энергию.",
+  lifeSupport: "Жизнеобеспечение поддерживает внутри базы безопасные воздух, воду и температуру.",
+});
+TEXT.en.real.flareAimed = "This flare was real. NASA saw it from Earth's side; in the game we pointed it at Mars.";
+TEXT.ru.real.flareAimed = "Эта вспышка была настоящей. NASA видело её со стороны Земли, а в игре мы направили её на Марс.";
+TEXT.en.sources.data = "NASA data and science sources";
+TEXT.ru.sources.data = "Данные NASA и научные источники";
+TEXT.en.ui.daily = "Mission of the day · {date}";
+TEXT.ru.ui.daily = "Миссия дня · {date}";

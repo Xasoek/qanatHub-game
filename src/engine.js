@@ -715,6 +715,14 @@ export function allocate(system, delta) {
   return true;
 }
 
+/**
+ * Mission of the day (TZ 3.8): the same seed for every player on the same UTC date, as YYYYMMDD.
+ * The UI pairs it with the last 30 days of DONKI flares, so everyone gets one mission per day.
+ */
+export function dailySeed(date = new Date()) {
+  return date.getUTCFullYear() * 10_000 + (date.getUTCMonth() + 1) * 100 + date.getUTCDate();
+}
+
 /** Earth answers when the link level rises: contact, basic link, then the full rescue plan. */
 function queueEarthMessages(before, after) {
   const types = { 1: "earthContact", 2: "earthLink", 3: "earthPlan" };
