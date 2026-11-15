@@ -15,6 +15,8 @@ export async function renderIndex() {
     platform: "browser",
     format: "iife",
     bundle: true,
+    minifyWhitespace: true,
+    minifySyntax: true,
     write: false,
     metafile: true,
     target: "es2022",

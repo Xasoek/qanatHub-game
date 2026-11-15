@@ -60,3 +60,20 @@ npm run sim -- 1000
 Первоначальная настройка для владельца репозитория: **Settings → Pages → Build and deployment → Source → GitHub Actions**. Если на странице предложены шаблоны workflow, используется уже существующий `smoke.yml`. После успешной публикации адрес появится в задании **Deploy to GitHub Pages** и в **Settings → Pages**. [Настройка источника GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
 
 [Чек-лист тестирования и выпуска](docs/RELEASE_CHECKLIST.md) · [Сценарий демо и материалы для презентации](docs/DEMO.md)
+
+## Simulator in the game
+The browser starts the optional simulator extension, paused for planning. Use “Start day”,
+“Plan work”, “End sol” and the review button to advance manually, or select a playback speed.
+The six-hour work allowance is an abstract daily budget. A planned job completes at sunset.
+Reopen the planner and click the job to cancel its reservation before settlement.
+
+After the opening storm, inspect and repair the airlock, replace the broken array and restore
+the radio. Free generation and heating allocations charge the battery; the base and heating
+use it at night. Temporary patches expire after three sols. There are two finite supply trips.
+The distant trip blocks crop care, with a declared equipment penalty during dust storms.
+To finish the return, test the beacon, survey the route, service the return vehicle and choose
+departure on sols 27–30. Otherwise the epilogue describes an assisted rescue.
+
+All energy units, labor hours, yields and the one-sol reply are educational simplifications.
+DONKI event dates and classes remain attributed archive records. Illustrative radiation risk
+points are separate from measured astronaut or Mars radiation doses.

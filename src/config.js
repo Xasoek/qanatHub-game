@@ -2,6 +2,29 @@
 // Every gameplay number lives here. tools/sim.js checks the balance targets.
 export const CONFIG = {
   missionSols: 30,
+  simulation: {
+    generationBonus: 2, hours: 6, batteryCapacity: 6, batteryInitial: 2, drawLimit: 2,
+    startingDusty: 2, startingDamage: 32, startingBroken: 1, sealLoss: .25,
+    patchSols: 3, patchDamageReturn: 10, spares: 4, nightBase: 1,
+    evacuationFrom: 27, evacuationOxygen: .5,
+    labor: { air: 0, farm: 1, repair: .5, heat: 0, comms: .5, science: 1 },
+    tasks: {
+      inspect: { hours: 1, cubes: 0, parts: 0, oxygen: 0, target: "air" },
+      patch: { hours: 1, cubes: 1, parts: 0, oxygen: 0, target: "air" },
+      seal: { hours: 2, cubes: 1, parts: 1, oxygen: 0, target: "air" },
+      panel: { hours: 2, cubes: 1, parts: 1, oxygen: .25, target: "panels" },
+      clean: { hours: 1, cubes: 0, parts: 0, oxygen: .25, target: "panels" },
+      radio: { hours: 2, cubes: 1, parts: 1, oxygen: 0, target: "comms" },
+      debris: { hours: 1, cubes: 0, parts: 0, oxygen: .25, target: "repair" },
+      near: { hours: 2, cubes: 1, parts: 0, oxygen: .5, food: 2, target: "science" },
+      far: { hours: 3, cubes: 1, parts: 0, oxygen: 1, food: 4, target: "science" },
+      robot: { hours: .5, cubes: 1, parts: 0, oxygen: 0, target: "science" },
+      beacon: { hours: 1, cubes: 1, parts: 0, oxygen: 0, target: "comms" },
+      route: { hours: 2, cubes: 0, parts: 0, oxygen: .5, target: "science" },
+      lander: { hours: 2, cubes: 1, parts: 1, oxygen: 0, target: "repair" },
+      depart: { hours: 1, cubes: 0, parts: 0, oxygen: .5, target: "science" },
+    },
+  },
   // 1 sol = 2 minutes at x1 (TZ 3.1).
   phasesMs: { morning: 15_000, day: 75_000, evening: 20_000, night: 10_000 },
   speeds: [1, 2, 4],

@@ -65,5 +65,27 @@
 - Для движка: `flareClass("M1.4")` возвращает `"M"`, `flaresToSols(flares, {startDate, sols})` возвращает `[{sol, class, classType, beginTime, flrID}]`, где день N диапазона соответствует солу N.
 - `text.js` экспортирует вложенные каталоги `TEXT.en` и `TEXT.ru` и функцию `t(lang, key, vars)`. Ключи вида `game.turn` общие для языков, переменные вида `{sol}` подставляются из `vars`. Вставляйте переводы через `textContent`.
 - `art.js` экспортирует `renderBase(state)` и возвращает строку встроенного SVG. Используйте известные значения из `STATE`. Подпись сцены задаёт UI.
+  **Изменение графического контракта (роль 2, на согласование с ролью 5).** Основная сцена теперь трёхмерная: `art.js` дополнительно экспортирует `createWorld(container, {onPick, stateRoot})`, `hasCapableGpu()`, `ART_CREDITS`, `renderIntroScene(frame)` и `renderProfile(profile)`. Модули 3D лежат в `src/art/` (сцена, модели, освещение, буря, интро), встроенные ассеты — в `src/art/assets/` (модель Perseverance NASA/JPL, карта Viking, тайл Mars Trek, архивные записи DONKI и RadLab). Мир только читает `STATE` через `world.setState(STATE)` и ничего в нём не меняет. Добавлена зависимость `three@0.187.0`: esbuild встраивает её в `index.html`, внешних загрузок нет. Без аппаратного WebGL 2 (в том числе в CI на SwiftShader) UI показывает `renderBase` — SVG-сцену, поэтому браузерный тест ждёт `#base canvas, #base svg`. Игра работает только в горизонтальной ориентации: в вертикальной показывается просьба повернуть устройство, а миссия и таймер бури стоят на паузе. Поэтому мобильный браузерный тест использует экран 800×360. Новые строки интерфейса лежат в `TEXT.en.ui` и `TEXT.ru.ui` с одинаковыми ключами; их текст проверяет роль 4.
 - `ui.js` экспортирует `async mountGame(root)`. UI загружает данные до `newGame({solarData})`, передаёт изменения в API движка и отрисовывает состояние. Для стартовой проверки UI двигает фазы кнопками. Роль 2 подключит цикл реального времени.
 - `main.js` монтирует UI один раз. `tools/build.js` собирает ES-модули в обычный встроенный скрипт, вставляет CSS и генерирует корневой `index.html`. Сборщик не допускает внешние импорты и ссылки на файлы из CSS. Дополнительные ссылки на источники открываются по действию игрока. Будущий запрос за свежими данными выполняется при выборе этого режима, основная игра использует встроенный архив.
+
+## Simulator extension in the game
+The browser calls newGame({simulation:true}). Classic engine callers retain their existing behavior.
+STATE.sim persists battery, spare parts, refundable task reservations, inspection, seal/radio/debris
+faults, patch expiry, finite EVA crates, readiness and departure. Engine commands planTask,
+unplanTask, drawBattery, taskAvailable and simulationPreview are the only UI mutation entry points.
+CONFIG.simulation owns balance. Work consumes six abstract game hours per sol. Free generation and
+heating allocations charge the battery at sunset, then base load and heating discharge it at night.
+Scripted shelter/cleaning blocks cancel and refund reserved tasks. Far EVA blocks farming.
+A response arrives next sol, with request and receipt timestamps. Rescue requires beacon, route,
+lander, repaired radio/seal and a departure during sols 27–30. These timings and amounts are game
+simplifications. Real flare archive records stay separately attributed.
+
+## Role 2 local integration, main 836243f
+The UI now reads getBlockedSystems() directly, including after loading a saved mission.
+New missions get a fresh uint32 seed, presentations use seed 9 and the team's classic
+presentation presets. Normal browser missions retain the optional mission simulator.
+Presentation entry saves the normal game; its own autosave and ending cannot overwrite it.
+A flare decision may add sourceFlare to its log entry, retaining the exact DONKI ID/link
+through save/load. Old saves without that optional field do not reconstruct historical records.
+Saved live datasets are labelled as snapshots, separate from a fresh live request.

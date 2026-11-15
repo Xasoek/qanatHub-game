@@ -551,6 +551,182 @@ for (const catalog of Object.values(TEXT)) {
   }
 }
 
+// Role 2 interface strings (3D UI). Added by role 2 for role 4 to review; keys match in both languages.
+TEXT.en.ui = Object.assign({
+  "menu": "Menu",
+  "continue": "Continue mission",
+  "presentation": "Presentation mode",
+  "act": "Act {n}",
+  "actHint": "Starts on sol {sol} with ready reserves at ×4.",
+  "sitePick": "Where will the base stand?",
+  "siteNote": {
+    "gale": "Curiosity's crater. +1 energy cube, but dust comes more often.",
+    "jezero": "Perseverance's crater. The air scrubber needs 1 cube less, but events hit twice as hard.",
+    "arcadia": "A plain with ice under the ground. Crops never wilt, but heating costs 2 cubes."
+  },
+  "profile": "Terrain profile · Mars Trek (MOLA)",
+  "diffNote": {
+    "cadet": "Ages 7–9: more air and food, 15 seconds for the storm decision.",
+    "engineer": "Ages 10–12: tighter reserves, 10 seconds for the storm decision."
+  },
+  "rescueIn": "Rescue in {n} sols",
+  "cubesFree": "{n} free",
+  "pause": "Pause",
+  "speed": "Speed ×{n}",
+  "skip": "Skip to the next decision",
+  "soundOn": "Sound on",
+  "soundOff": "Sound off",
+  "zoomIn": "Zoom in",
+  "zoomOut": "Zoom out",
+  "home": "Reset camera",
+  "planet": "Planet view",
+  "toBase": "Back to base",
+  "orbitTitle": "Your little home on Mars",
+  "orbitNote": "Surface: Viking · NASA/JPL/USGS. The outpost location is illustrative.",
+  "marker": "Zarya outpost",
+  "camera": "Drag to rotate · pinch or scroll to zoom",
+  "sensors": "Base sensors",
+  "sensor": {
+    "damage": "Base damage",
+    "dose": "Radiation dose",
+    "fatigue": "Mark's fatigue",
+    "panels": "Working panels",
+    "crop": "Crop growth",
+    "scrubber": "Air scrubber",
+    "crates": "Supply crates",
+    "temp": "Outside, average",
+    "pressure": "Outside pressure"
+  },
+  "value": {
+    "percent": "{n}%",
+    "ofTotal": "{n} of {total}",
+    "ok": "Working",
+    "broken": "Broken: air goes twice as fast",
+    "temp": "{c} °C",
+    "pressure": "{mb} mbar",
+    "leak": "Leak! Air goes twice as fast"
+  },
+  "objects": {
+    "air": "Habitat",
+    "farm": "Greenhouse",
+    "repair": "Workshop",
+    "heat": "Radiation shelter",
+    "comms": "Antenna",
+    "science": "NASA rover",
+    "panels": "Solar panels"
+  },
+  "walk": "Mark is heading to: {place}",
+  "pickHint": "Tap a building, then give energy to its system below.",
+  "inspect": "Look closer",
+  "credits": "3D scene sources",
+  "credit": {
+    "earth": "The Earth view uses NASA's Blue Marble image; its clouds are drawn by the game.",
+    "rover": "The rover is NASA's official 3D model of Perseverance.",
+    "map": "The planet view uses the Viking surface map.",
+    "trek": "The map table in the workshop shows a real Mars Trek hillshade tile near Gale.",
+    "donki": "The antenna screen shows a real archived flare from DONKI (May 10, 2024).",
+    "radlab": "The shelter screen shows one archived dose reading from the ISS. It is not a Mars reading.",
+    "moxie": "The oxygen plant is a concept inspired by MOXIE, which made oxygen from Mars air.",
+    "art": "Buildings, terrain, crew and the ascent vehicle are artistic concepts, not copies of real hardware."
+  },
+  "webgl": "3D needs WebGL 2. Showing the simple 2D base.",
+  "allocAdd": "Give energy to {system}",
+  "allocRemove": "Take energy back from {system}",
+  "locked": "Opens on sol {sol}",
+  "earth": "Earth",
+  "forecast": "Forecast for {sols} sols: storm {storm}%, flare {flare}%",
+  "systemFor": "System: {system}",
+  "rotateTitle": "Rotate your device",
+  "rotateHint": "One Sol to Rescue is played in landscape. The mission waits while the screen is upright."
+}, {"dataSource": "NASA solar data", "dataArchive": {"title": "NASA archive", "note": "Real flares from May 1–31, 2024. Works offline."}, "dataLive": {"title": "Today's Sun", "note": "Downloads flares from the last 30 days. Needs the internet."}, "loading": "Fetching NASA data…", "blockedTitle": "Closed until tomorrow: {why}", "blockedBy": {"storm": "panels are folded", "flare": "Mark is in the shelter", "dustyPanels": "Mark is cleaning panels", "roverCrate": "Mark went to the rover"}, "rangeLabel": "Day to night", "range": "{max}…{min} °C"}, {"space": {"sun": "Sun", "mercury": "Mercury", "venus": "Venus", "earth": "Earth", "mars": "Mars", "jupiter": "Jupiter", "saturn": "Saturn", "uranus": "Uranus", "neptune": "Neptune", "ship": "Sunkar"}, "focus": {"mars": "Mars", "earth": "Earth", "system": "Solar system", "ship": "Sunkar ship"}, "trip": {"ship": "Rescue cargo ship «Sunkar»", "day": "Flight day", "dayValue": "{d} of {total}", "arrival": "Arrives in", "arrivalValue": "{n} days · {s} sols", "speed": "Speed around the Sun", "speedValue": "{v} km/s", "toMars": "Distance to Mars", "fromEarth": "Distance from Earth", "million": "{d} million km", "delay": "Radio delay Earth → Mars", "delayValue": "{m} min", "note": "The ship follows a Hohmann transfer: the most fuel-efficient path from Earth to Mars, about 259 days. Game time: each sol moves the ship 7 days, so you can watch the whole flight. Real constants; orbits are drawn as circles in one plane. Inner orbits keep their true proportions; planets are drawn bigger, and the outer planets sit at 60% of their real distance. The ship is drawn enlarged."}});
+TEXT.ru.ui = Object.assign({
+  "menu": "Меню",
+  "continue": "Продолжить миссию",
+  "presentation": "Режим презентации",
+  "act": "Акт {n}",
+  "actHint": "Старт с сола {sol} с готовыми запасами, скорость ×4.",
+  "sitePick": "Где будет стоять база?",
+  "siteNote": {
+    "gale": "Кратер Curiosity. +1 кубик энергии, но пыль приходит чаще.",
+    "jezero": "Кратер Perseverance. Очистителю нужно на 1 кубик меньше, но события бьют вдвое сильнее.",
+    "arcadia": "Равнина со льдом под грунтом. Рассада не вянет, но обогрев стоит 2 кубика."
+  },
+  "profile": "Профиль рельефа · Mars Trek (MOLA)",
+  "diffNote": {
+    "cadet": "7–9 лет: больше воздуха и еды, 15 секунд на решение в бурю.",
+    "engineer": "10–12 лет: запасы меньше, 10 секунд на решение в бурю."
+  },
+  "rescueIn": "Помощь через {n} сол.",
+  "cubesFree": "свободно {n}",
+  "pause": "Пауза",
+  "speed": "Скорость ×{n}",
+  "skip": "До следующего решения",
+  "soundOn": "Звук включён",
+  "soundOff": "Звук выключен",
+  "zoomIn": "Приблизить",
+  "zoomOut": "Отдалить",
+  "home": "Сбросить камеру",
+  "planet": "Весь Марс",
+  "toBase": "На базу",
+  "orbitTitle": "Твой маленький дом на Марсе",
+  "orbitNote": "Поверхность: Viking · NASA/JPL/USGS. Место базы условное.",
+  "marker": "База «Заря»",
+  "camera": "Потяни, чтобы повернуть · щипок или колесо — масштаб",
+  "sensors": "Датчики базы",
+  "sensor": {
+    "damage": "Урон базы",
+    "dose": "Доза радиации",
+    "fatigue": "Усталость Марка",
+    "panels": "Рабочие панели",
+    "crop": "Рост рассады",
+    "scrubber": "Очиститель воздуха",
+    "crates": "Ящики с запасами",
+    "temp": "Снаружи, в среднем",
+    "pressure": "Давление снаружи"
+  },
+  "value": {
+    "percent": "{n}%",
+    "ofTotal": "{n} из {total}",
+    "ok": "Работает",
+    "broken": "Сломан: воздух уходит вдвое быстрее",
+    "temp": "{c} °C",
+    "pressure": "{mb} мбар",
+    "leak": "Утечка! Воздух уходит вдвое быстрее"
+  },
+  "objects": {
+    "air": "Жилой модуль",
+    "farm": "Теплица",
+    "repair": "Мастерская",
+    "heat": "Радиационное убежище",
+    "comms": "Антенна",
+    "science": "Ровер NASA",
+    "panels": "Солнечные панели"
+  },
+  "walk": "Марк идёт: {place}",
+  "pickHint": "Нажми на здание, а потом дай энергию его системе внизу.",
+  "inspect": "Осмотреть",
+  "credits": "Источники 3D-сцены",
+  "credit": {
+    "earth": "Земля в космическом виде — снимок NASA Blue Marble; облака дорисованы игрой.",
+    "rover": "Ровер — официальная 3D-модель Perseverance от NASA.",
+    "map": "Вид планеты использует карту поверхности Viking.",
+    "trek": "Стол с картой в мастерской показывает настоящий тайл рельефа Mars Trek у Гейла.",
+    "donki": "Экран антенны показывает настоящую архивную вспышку из DONKI (10 мая 2024 года).",
+    "radlab": "Экран убежища показывает одно архивное измерение дозы на МКС. Это не марсианская доза.",
+    "moxie": "Кислородная установка — концепт по мотивам MOXIE, который делал кислород из воздуха Марса.",
+    "art": "Здания, рельеф, экипаж и взлётный корабль — художественные концепты, а не копии настоящей техники."
+  },
+  "webgl": "Для 3D нужен WebGL 2. Показываем простую 2D-базу.",
+  "allocAdd": "Дать энергию: {system}",
+  "allocRemove": "Вернуть энергию: {system}",
+  "locked": "Откроется на соле {sol}",
+  "earth": "Земля",
+  "forecast": "Прогноз на {sols} сол.: буря {storm}%, вспышка {flare}%",
+  "systemFor": "Система: {system}",
+  "rotateTitle": "Поверни устройство",
+  "rotateHint": "В игру играют в горизонтальном положении. Пока экран вертикальный, миссия стоит на паузе."
+}, {"dataSource": "Данные NASA о Солнце", "dataArchive": {"title": "Архив NASA", "note": "Настоящие вспышки 1–31 мая 2024 года. Работает без интернета."}, "dataLive": {"title": "Сегодняшнее Солнце", "note": "Загружает вспышки за последние 30 дней. Нужен интернет."}, "loading": "Загружаем данные NASA…", "blockedTitle": "Закрыто до завтра: {why}", "blockedBy": {"storm": "панели сложены", "flare": "Марк в убежище", "dustyPanels": "Марк чистит панели", "roverCrate": "Марк ушёл к вездеходу"}, "rangeLabel": "Днём и ночью", "range": "{max}…{min} °C"}, {"space": {"sun": "Солнце", "mercury": "Меркурий", "venus": "Венера", "earth": "Земля", "mars": "Марс", "jupiter": "Юпитер", "saturn": "Сатурн", "uranus": "Уран", "neptune": "Нептун", "ship": "Сұңқар"}, "focus": {"mars": "Марс", "earth": "Земля", "system": "Солнечная система", "ship": "Корабль Сұңқар"}, "trip": {"ship": "Спасательный грузовой корабль «Сұңқар»", "day": "День полёта", "dayValue": "{d} из {total}", "arrival": "Прилетит через", "arrivalValue": "{n} дн. · {s} сол.", "speed": "Скорость вокруг Солнца", "speedValue": "{v} км/с", "toMars": "До Марса", "fromEarth": "От Земли", "million": "{d} млн км", "delay": "Задержка радиосигнала Земля → Марс", "delayValue": "{m} мин", "note": "Корабль летит по переходной орбите Гоманна: самому экономному пути от Земли к Марсу, около 259 дней. Время в игре ускорено: каждый сол корабль пролетает 7 дней, чтобы был виден весь путь. Константы настоящие; орбиты нарисованы кругами в одной плоскости. Внутренние орбиты сохраняют настоящие пропорции; планеты нарисованы крупнее, а дальние планеты стоят на 60% от настоящего расстояния. Корабль показан увеличенным."}});
+
 export function t(lang, key, vars = {}) {
   const catalog = Object.hasOwn(TEXT, lang) ? TEXT[lang] : TEXT.en;
   const value = key.split(".").reduce((node, part) => node && Object.hasOwn(node, part) ? node[part] : undefined, catalog);
@@ -640,3 +816,93 @@ export const STORY_SOURCES = {
   "real.site": "https://trek.nasa.gov/tiles/apidoc/trekAPI.html?body=mars",
   "teachers.intro": "https://www.asc-csa.gc.ca/eng/youth-educators/activities/teamwork-and-communication/",
 };
+
+Object.assign(TEXT.en, {sim: {
+  title:"Mark’s workday", open:"Plan work", close:"Back to base",
+  intro:"The base is buried. Only one array is clear; the airlock leaks and the radio is down. Clear a passage and inspect the seal before night.",
+  premise:"Restore the storm-damaged outpost, prepare a surface return and reach Sunkar in 30 sols.",
+  hours:"Work {used} / {total} h", battery:"Battery {n} / {total}", parts:"Spare parts {n}",
+  preview:"Tonight: charge {charge}, demand {need}, left {after}. Air use today: {oxygen} sols.",
+  draw:"Use battery (up to 2)", ready:"Rescue checks {n} / 3", queue:"Today’s reserved work", empty:"No extra jobs planned.",
+  tip:"Click a job to reserve it. It completes at sunset. Click a reserved job to cancel. System allocations also take work time. Unused energy and heating allocations charge the battery at sunset.",
+  balance:"Hours, energy units, crop growth and one-sol replies are game simplifications. Dose points are an illustrative risk model, not measured Mars doses.",
+  cost:"{hours} h · {cubes} energy · {parts} parts · {oxygen} air",
+  failed:"That job no longer fits today. Check time, energy, parts and prerequisites.",
+  pending:"Reserved", locked:"Unavailable", harvest:"Crop {n} / {total} steps. Powered care advances growth; skipping can set it back.",
+  request:"Earth reply: asked sol {sent}, received sol {received}.",
+  fresh:"The recorded base condition still matches.", stale:"The base changed while Earth was answering. Recheck the advice.",
+  leak:"Inspect the airlock: pressure is falling even when the scrubber has power.",
+  diagnosed:"Seal fault located. A patch lasts 3 sols. Replacing the seal needs a spare.",
+  patched:"Temporary seal until sol {sol}. Schedule a lasting repair.",
+  fixed:"The airlock seal is repaired.", radio:"Radio fault: powered transmission cannot reach Earth yet.",
+  farWarning:"A distant trip prevents greenhouse care today. A storm adds base damage on return.",
+  returnPath:"EVA oxygen is reserved for the round trip. Nearby: 0.5 air, 2 h. Distant: 1 air, 3 h.",
+  final:"Repair the seal and radio, test beacon and lander, survey the route. Depart on sols 27–30.",
+  notes:{patchExpired:"The temporary seal expired: the leak returned.",cancelled:"Shelter or cleaning cancelled field jobs; reserved costs were refunded.",
+    evaStorm:"Dust delayed the supply trip and damaged equipment.",scouted:"Beep inspected the fault while Mark stayed indoors.",
+    cold:"Battery ran short overnight. Mark is tired.",notReady:"Sunkar reached Mars, but the surface return was incomplete. An assisted rescue retrieved Mark."},
+  tasks:{
+    inspect:"Inspect the airlock",patch:"Apply a temporary patch",seal:"Replace the airlock seal",
+    panel:"Replace one broken panel",clean:"Clean one dusty panel",radio:"Repair the radio",debris:"Clear storm debris",
+    near:"Retrieve the nearby crate (+2 food)",far:"Retrieve the distant crate (+4 food)",robot:"Send Beep to inspect",
+    beacon:"Test the rendezvous beacon",route:"Survey the return route",lander:"Service the return vehicle",depart:"Leave for the return vehicle"
+  },
+  why:{
+    inspect:"Find the leak before choosing a repair.",patch:"Requires inspection. Buys 3 sols, then the leak returns.",
+    seal:"Requires inspection and one spare. Permanently seals this fault.",panel:"Recovers generation next sol.",
+    clean:"Recovers output next sol without a spare.",radio:"Restores contact. Replies still arrive one sol later.",
+    debris:"Removes loose parts from the base.",near:"One crate, one trip. Food at the cost of air and time.",
+    far:"One crate, one trip. Blocks plant care. Storm risk is shown above.",robot:"One inspection trip. Uses energy while Mark stays indoors.",
+    beacon:"Requires a working radio.",route:"Clear storm debris first. Air covers the outward and return walk.",
+    lander:"A spare and energy for the surface return system.",depart:"Requires all three checks and repaired seal/radio. Opens on sol 27."
+  }
+}});
+Object.assign(TEXT.ru, {sim: {
+  title:"Рабочий день Марка",open:"План работ",close:"К базе",
+  intro:"Базу засыпало. Открыта лишь одна панель, шлюз теряет воздух, радио молчит. Расчисти проход и проверь уплотнение до ночи.",
+  premise:"Восстанови базу после бури, подготовь возвращение с поверхности и доберись до Сұңқара за 30 солов.",
+  hours:"Работа {used} / {total} ч",battery:"Аккумулятор {n} / {total}",parts:"Запчасти {n}",
+  preview:"Ночью: заряд {charge}, нужно {need}, останется {after}. Расход воздуха за день: {oxygen} сола.",
+  draw:"Взять из аккумулятора (до 2)",ready:"Проверки спасения {n} / 3",queue:"Работы, запланированные на сегодня",empty:"Дополнительных работ пока нет.",
+  tip:"Нажми на работу, чтобы запланировать её до заката. Повторное нажатие отменяет её. Энергия для систем тоже занимает рабочее время. Свободная энергия и энергия обогрева заряжают аккумулятор к закату.",
+  balance:"Часы, энергия, рост растений и ответ через сол упрощены для игры. Очки дозы — условная модель риска, не измерения на Марсе.",
+  cost:"{hours} ч · {cubes} энергии · {parts} запчастей · {oxygen} воздуха",
+  failed:"Работа уже не помещается в этот день. Проверь время, энергию, запчасти и условия.",
+  pending:"В плане",locked:"Недоступно",harvest:"Урожай {n} / {total} шагов. Уход с питанием ускоряет рост; пропуск может откатить его.",
+  request:"Ответ Земли: запрос на соле {sent}, получение на соле {received}.",
+  fresh:"Состояние базы всё ещё соответствует отправленным показаниям.",stale:"За время ожидания база изменилась. Перепроверь совет.",
+  leak:"Проверь шлюз: давление падает даже при работающем очистителе.",
+  diagnosed:"Найдена неисправность уплотнения. Заплата держится 3 сола. Для замены нужна запчасть.",
+  patched:"Временная герметизация до сола {sol}. Запланируй надёжный ремонт.",
+  fixed:"Уплотнение шлюза заменено.",radio:"Неисправно радио: подача энергии пока не восстановит связь.",
+  farWarning:"Дальняя вылазка отменяет уход за теплицей сегодня. При буре оборудование получит урон.",
+  returnPath:"Воздух зарезервирован на путь туда и обратно. Рядом: 0,5 воздуха, 2 ч. Далеко: 1 воздуха, 3 ч.",
+  final:"Почини шлюз и радио, проверь маяк и аппарат, обследуй маршрут. Отправляйся на солах 27–30.",
+  notes:{patchExpired:"Срок заплаты истёк: утечка вернулась.",cancelled:"Убежище или чистка отменили выездные работы; затраты возвращены.",
+    evaStorm:"Пыль задержала вылазку за припасами и повредила оборудование.",scouted:"Бип осмотрел неисправность, пока Марк оставался внутри.",
+    cold:"Ночью не хватило заряда. Марк устал.",notReady:"Сұңқар достиг Марса, но возвращение с поверхности не подготовлено. Марка забрала вспомогательная спасательная группа."},
+  tasks:{
+    inspect:"Осмотреть шлюз",patch:"Поставить временную заплату",seal:"Заменить уплотнение шлюза",
+    panel:"Заменить сломанную панель",clean:"Очистить одну панель",radio:"Починить радио",debris:"Убрать обломки бури",
+    near:"Забрать ближний ящик (+2 еды)",far:"Забрать дальний ящик (+4 еды)",robot:"Отправить Бипа на осмотр",
+    beacon:"Проверить маяк встречи",route:"Обследовать маршрут возвращения",lander:"Обслужить возвратный аппарат",depart:"Отправиться к возвратному аппарату"
+  },
+  why:{
+    inspect:"Найди утечку до выбора ремонта.",patch:"После осмотра. Даёт 3 сола, затем утечка возвращается.",
+    seal:"После осмотра. Одна запчасть надолго устраняет эту утечку.",panel:"Возвращает выработку со следующего сола.",
+    clean:"Возвращает выработку со следующего сола без запчасти.",radio:"Возвращает связь. Ответ приходит через сол.",
+    debris:"Убирает свободные обломки с территории базы.",near:"Один ящик, один поход. Еда за воздух и время.",
+    far:"Один ящик, один поход. Отменяет уход за растениями. Риск бури указан выше.",robot:"Один осмотр. Тратит энергию, пока Марк внутри.",
+    beacon:"Нужно исправное радио.",route:"Сначала убери обломки. Воздух учитывает путь туда и обратно.",
+    lander:"Запчасть и энергия для системы возвращения.",depart:"Нужны три проверки, исправные шлюз и радио. Доступно с сола 27."
+  }
+}});
+
+for(const language of ["en","ru"]){
+  for(const [key,value]of Object.entries(TEXT[language].sim.tasks)){
+    (TEXT[language].log.sim ??= {})[key]=value;
+  }
+}
+
+Object.assign(TEXT.en.ui,{missionMenu:"Mission setup",demoStart:"Presentation · Act 3",demoExit:"Return to my mission",savedSolar:"Saved NASA solar snapshot"});
+Object.assign(TEXT.ru.ui,{missionMenu:"Настройка миссии",demoStart:"Презентация · Акт 3",demoExit:"Вернуться в мою миссию",savedSolar:"Сохранённый снимок данных NASA"});

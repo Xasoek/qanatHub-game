@@ -10,11 +10,12 @@
     "build": "node tools/build.js",
     "build:check": "node tools/build.js --check",
     "test": "node --test && node tools/smoke.js && node tools/data-check.js",
-    "test:browser": "node --test tools/browser-smoke.js",
+    "test:browser": "node --test tools/browser-smoke.js tools/ui-integration-smoke.js",
     "sim": "node tools/sim.js"
   },
   "devDependencies": {
     "esbuild": "0.28.2",
-    "playwright": "1.65.1"
+    "playwright": "1.65.1",
+    "three": "^0.187.0"
   }
 }

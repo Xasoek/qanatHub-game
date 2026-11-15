@@ -1,5 +1,7 @@
 // Role 1: game state, rules, events, delayed consequences and saves.
 // The UI changes the game only through the exported functions.
+import { makeSimulation, labor, planned, canTask, queueTask, cancelTask,
+  startSimulationSol, settleSimulationDay, previewSimulation } from "./simulator.js";
 import { CONFIG } from "./config.js";
 
 export let STATE;
@@ -47,7 +49,7 @@ function shuffle(list) {
 
 const round = (value) => Math.round(value * 100) / 100;
 const rules = () => CONFIG.siteRules[STATE.site];
-const unlocked = (system) => STATE.sol >= CONFIG.unlockSol[system];
+const unlocked = (system) => Boolean(STATE.sim) || STATE.sol >= CONFIG.unlockSol[system];
 const downPanels = () => STATE.panels.broken + STATE.panels.dusty;
 
 function resetAllocation() {
@@ -61,7 +63,8 @@ function addDamage(base) {
 }
 
 function logEntry(choice, cost = {}) {
-  STATE.log.push({ sol: STATE.sol, choice, cost, note: `log.${choice}` });
+  const entry={sol:STATE.sol,choice,cost,note:`log.${choice}`};
+  STATE.log.push(entry);
   return STATE.log.length - 1;
 }
 
@@ -126,7 +129,7 @@ function addShowcaseEvents() {
  * reserves at x4 and never touches the save. Acts 2 and 3 open with a storm and a flare.
  */
 export function newGame({ site = CONFIG.defaults.site, difficulty = CONFIG.defaults.difficulty,
-  seed = CONFIG.defaults.seed, solarData, presentation = null } = {}) {
+  seed = CONFIG.defaults.seed, solarData, presentation = null, simulation = false } = {}) {
   if (!CONFIG.sites.includes(site)) throw new RangeError(`Unknown site: ${site}`);
   if (!Object.hasOwn(CONFIG.difficulties, difficulty)) {
     throw new RangeError(`Unknown difficulty: ${difficulty}`);
@@ -160,6 +163,15 @@ export function newGame({ site = CONFIG.defaults.site, difficulty = CONFIG.defau
     flares: structuredClone(solarData?.flares ?? []),
     seed,
   };
+  if (simulation) {
+    STATE.sim=makeSimulation();
+    if (!presentation) {
+      STATE.damage=CONFIG.simulation.startingDamage;
+      STATE.panels.broken=CONFIG.simulation.startingBroken;
+      STATE.panels.dusty=CONFIG.simulation.startingDusty;
+    }
+    STATE.paused=true;
+  }
   meta.schedule = buildSchedule();
   if (preset.showcase) addShowcaseEvents();
   startSol();
@@ -176,7 +188,7 @@ function rollWeather() {
 
 function computeCubes() {
   const penalty = CONFIG.cubePenalty;
-  let cubes = CONFIG.cubesByWeather[STATE.weather] + rules().bonusCubes;
+  let cubes = CONFIG.cubesByWeather[STATE.weather] + rules().bonusCubes + (STATE.sim?CONFIG.simulation.generationBonus:0);
   cubes -= downPanels() * penalty.perDownPanel;
   if (STATE.fatigue >= penalty.fatigueAt) cubes -= penalty.fatigue;
   for (const item of STATE.pending) {
@@ -231,6 +243,7 @@ function checkReserves() {
 
 function startSol() {
   STATE.weather = rollWeather();
+  startSimulationSol(STATE);
   firePending();
   if (updateStatus()) {
     finishGame();
@@ -241,9 +254,11 @@ function startSol() {
     addEffect(meta.zeroCubesNext, "noPower", { cubes });
     STATE.cubes = 0;
     meta.zeroCubesNext = null;
+    if (STATE.sim) STATE.sim.battery=0;
   } else {
     STATE.cubes = cubes;
   }
+  if (STATE.sim) STATE.sim.generated=STATE.cubes;
   STATE.alloc = resetAllocation();
   meta.blocked = [];
   meta.blockedBy = {};
@@ -484,7 +499,12 @@ export function resolveEvent(id, choice) {
   const option = event.choices.find((item) => item.id === choice);
   if (!option || (option.spend ?? 0) > STATE.cubes) return false;
   meta.active = null;
+  const beforeLog=STATE.log.length;
   applyChoice(event, choice);
+  if(event.type==="flare"&&event.data.flare){
+    const entry=STATE.log.slice(beforeLog).find(item=>item.choice===`flare.${choice}`);
+    if(entry)entry.sourceFlare=structuredClone(event.data.flare);
+  }
   if (updateStatus()) finishGame();
   else activateNext();
   return true;
@@ -510,6 +530,18 @@ export function getBlockedSystems() {
 function settleDay() {
   const siteRules = rules();
   const { alloc } = STATE;
+  if (STATE.sim) {
+    settleSimulationDay(STATE,meta.blocked.includes("repair"));
+    for(const key of STATE.sim.lastPlan){
+      const rule=CONFIG.simulation.tasks[key];
+      logEntry("sim."+key,{cubes:rule.cubes,oxygen:rule.oxygen});
+    }
+    if (STATE.sim.lastPlan.includes("far")) block(["farm"],null);
+    const sim=STATE.sim;
+    sim.charged=Math.min(CONFIG.simulation.batteryCapacity-sim.battery,STATE.cubes+alloc.heat);
+    sim.battery+=sim.charged;
+    STATE.cubes=0;
+  }
 
   // Air (TZ 3.4): full power stops the loss, partial power halves it.
   const airLevel = alloc.air >= siteRules.airFullCubes ? 2 : alloc.air > 0 ? 1 : 0;
@@ -518,7 +550,8 @@ function settleDay() {
   let factor = 1;
   if (STATE.scrubberBroken) factor *= faults.scrubberBroken;
   if (STATE.damage > CONFIG.leakDamage) factor *= faults.leak;
-  const oxygenLoss = factor > 1 ? Math.max(baseLoss, faults.minLossWhenFaulty) * factor : baseLoss;
+  let oxygenLoss = factor > 1 ? Math.max(baseLoss, faults.minLossWhenFaulty) * factor : baseLoss;
+  if (STATE.sim?.sealBroken && !STATE.sim.patchUntil) oxygenLoss+=CONFIG.simulation.sealLoss;
   if (baseLoss > 0) logEntry("air.low", { oxygen: baseLoss });
   if (STATE.scrubberBroken && oxygenLoss > baseLoss) {
     addEffect(meta.scrubberLog, "scrubberBroken", { oxygen: round(oxygenLoss - baseLoss) });
@@ -561,7 +594,10 @@ function settleDay() {
 
   meta.samples += alloc.science;
   STATE.stars = CONFIG.science.starSamples.filter((samples) => meta.samples >= samples).length;
-  if (alloc.comms > 0) meta.forecastAsked = true;
+  if (alloc.comms > 0 && !STATE.sim?.radioBroken) {
+    meta.forecastAsked = true;
+    if(STATE.sim){STATE.sim.sentSol=STATE.sol;STATE.sim.sentDamage=STATE.damage;}
+  }
 
   const food = Math.min(STATE.food, CONFIG.foodUsePerSol);
   STATE.food = round(STATE.food - food);
@@ -570,7 +606,14 @@ function settleDay() {
 
 function settleNight() {
   if (unlocked("heat")) {
-    const heated = meta.blackoutNight == null && STATE.alloc.heat >= rules().heatCubes;
+    let heated = meta.blackoutNight == null && STATE.alloc.heat >= rules().heatCubes;
+    if(STATE.sim){
+      const need=CONFIG.simulation.nightBase+rules().heatCubes;
+      heated=meta.blackoutNight==null && STATE.sim.battery>=need;
+      STATE.sim.nightUse=Math.min(need,STATE.sim.battery);
+      STATE.sim.battery-=STATE.sim.nightUse;
+      if(!heated)STATE.sim.notes.push("cold");
+    }
     if (heated) {
       STATE.fatigue = Math.max(0, STATE.fatigue - CONFIG.heat.fatigueRecovery);
       meta.coldNights = 0;
@@ -611,7 +654,8 @@ function updateStatus() {
   if (STATE.oxygen <= 0 || STATE.food <= 0 || STATE.damage >= CONFIG.damageLimit) {
     STATE.status = "emergencySleep";
   } else if (STATE.phase === "evening" && STATE.sol >= CONFIG.missionSols) {
-    STATE.status = "rescued";
+    STATE.status = !STATE.sim || STATE.sim.departed ? "rescued" : "emergencySleep";
+    if(STATE.sim && !STATE.sim.departed)STATE.sim.notes.push("notReady");
   } else {
     return false;
   }
@@ -634,7 +678,7 @@ function setPhase(phase) {
   meta.elapsedInPhase = 0;
   let ended = false;
   if (phase === "evening") {
-    STATE.cubes = 0; // unplaced cubes burn (TZ 3.1)
+    if(!STATE.sim) STATE.cubes = 0; // simulator stores unused generation
     settleDay();
     ended = updateStatus();
   }
@@ -664,9 +708,31 @@ export function allocate(system, delta) {
       !unlocked(system) || meta.blocked.includes(system)) return false;
   const next = STATE.alloc[system] + delta;
   if (next < 0 || next > CONFIG.maxAlloc[system] || STATE.cubes - delta < 0) return false;
+  if(STATE.sim && labor(STATE,{...STATE.alloc,[system]:next})+planned(STATE)>CONFIG.simulation.hours)return false;
   STATE.alloc[system] = next;
   STATE.cubes -= delta;
   return true;
+}
+
+/** Plan field and maintenance work. Resource reservations are refundable until day settlement. */
+export function planTask(key) {
+  if(!STATE?.sim || meta.active)return false;
+  const result=queueTask(STATE,key);
+  if(result)save();
+  return result;
+}
+export function unplanTask(key) {
+  if(!STATE?.sim || meta.active || STATE.phase!=="day" || STATE.status!=="playing")return false;
+  return cancelTask(STATE,key);
+}
+export function taskAvailable(key) {return !meta.active && canTask(STATE,key);}
+export function simulationPreview(){return previewSimulation(STATE);}
+export function drawBattery() {
+  const sim=STATE?.sim;
+  if(!sim || meta.active || STATE.status!=="playing" || STATE.phase!=="day")return false;
+  const amount=Math.min(CONFIG.simulation.drawLimit,sim.battery);
+  if(!amount)return false;
+  sim.battery-=amount;STATE.cubes+=amount;return true;
 }
 
 /** Goes to the evening. Unanswered decisions take their default choice. */
@@ -677,6 +743,13 @@ export function endSol() {
     resolveEvent(meta.active.id, meta.active.defaultChoice);
   }
   if (STATE.status === "playing") setPhase("evening");
+  return true;
+}
+
+/** Explicit review button advances a paused simulator night without changing the clock setting. */
+export function reviewSol(){
+  if(!STATE.sim || STATE.status!=="playing" || !["evening","night"].includes(STATE.phase) || meta.active)return false;
+  finishSol();
   return true;
 }
 
@@ -818,6 +891,7 @@ export function getEndReport() {
     status: STATE.status, sol: STATE.sol, chains,
     oxygen: STATE.oxygen, food: STATE.food, damage: STATE.damage,
     panelsWorking: STATE.panels.total - downPanels(), stars: STATE.stars,
+    ...(STATE.sim?{simulation:{ready:{...STATE.sim.ready},departed:STATE.sim.departed,battery:STATE.sim.battery}}:{}),
   };
 }
 
