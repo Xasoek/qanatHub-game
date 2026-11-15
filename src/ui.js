@@ -7,6 +7,7 @@ import {
   skipToDecision, tick, planTask, unplanTask, taskAvailable, simulationPreview, drawBattery, reviewSol, save,
 } from "./engine.js";
 import { DAILY_TASKS, STORY_SOURCES, TRAINING_TASKS, playIntro, t } from "./text.js";
+import { createGuide, guideSeen, markGuideSeen } from "./guide.js";
 
 const studyKeys = ["bip.study.sleep", "bip.study.muscle", "bip.study.bone"];
 const realKeys = ["real.storm", "real.flare", "real.lettuce", "real.radish", "real.potato", "real.cropTiming"];
@@ -117,7 +118,7 @@ export async function mountGame(root) {
         <button id="language" type="button"></button>
         <button id="menu" type="button" class="icon-button" aria-expanded="false">${icon("menu")}</button>
         <nav class="menu-panel" id="menu-panel" hidden>
-          <button id="mission-menu" type="button"></button><button id="watch" type="button"></button>
+          <button id="mission-menu" type="button"></button><button id="guide-open" type="button"></button><button id="watch" type="button"></button>
           <button id="demo-start" type="button"></button><button id="demo-exit" type="button" hidden></button>
           <button id="facts" type="button"></button>
           <button id="teachers" type="button"></button><button id="sources" type="button"></button>
@@ -125,6 +126,8 @@ export async function mountGame(root) {
       </div>
     </div>
     <section id="setup-screen" class="sheet setup" hidden>
+      <div class="guide-offer" id="guide-offer" hidden><span class="robot" aria-hidden="true"></span><p id="guide-offer-text"></p>
+        <button id="guide-offer-open" type="button" class="primary"></button><button id="guide-offer-dismiss" type="button"></button></div>
       <h2 id="premise"></h2>
       <p class="eyebrow" id="site-label"></p>
       <div class="cards" id="site-cards"></div>
@@ -192,9 +195,18 @@ export async function mountGame(root) {
     <section id="portrait-lock" class="portrait-lock" role="alert"><div class="rotate-device" aria-hidden="true"></div><h2 id="rotate-title"></h2><p id="rotate-hint"></p></section>
     <section id="reading-screen" class="sheet reading" hidden>
       <div class="sheet-head"><h2 id="reading-title"></h2><button id="back" type="button"></button></div><div id="reading-copy"></div>
-    </section>`;
+    </section>
+    <div id="guide-layer" class="guide-layer" hidden></div>`;
 
   const listen = (id, fn) => find(id).addEventListener("click", fn);
+  // "How to play" guide. It is offered once on the setup screen and can be reopened from the menu.
+  // While it is open the mission clock waits (see frame()), and the game state is never changed.
+  let offerGuide = !guideSeen();
+  const guide = createGuide({
+    layer: find("guide-layer"), copy, icon,
+    onLanguage: () => { lang = lang === "en" ? "ru" : "en"; render(); },
+    onClose: () => { offerGuide = false; render(); },
+  });
   function node(tag, value = "", cls) {
     const element = document.createElement(tag);
     element.textContent = value;
@@ -317,6 +329,8 @@ export async function mountGame(root) {
   }
   function beginMission(state) {
     find("work-screen").hidden=true;
+    // Starting or continuing a mission answers the first-time offer; returning players are not asked again.
+    if (offerGuide) { offerGuide = false; markGuideSeen(); }
     completedTask = null;
     previousEvent = null;
     flareRecords = new Map();
@@ -737,6 +751,12 @@ export async function mountGame(root) {
     find("menu").setAttribute("aria-expanded", String(menuOpen));
     find("menu-panel").hidden = !menuOpen;
     text("mission-menu","ui.missionMenu");text("watch","intro.play");text("demo-start","ui.demoStart");text("demo-exit","ui.demoExit");
+    text("guide-open", "guide.open");
+    find("guide-offer").hidden = !offerGuide;
+    text("guide-offer-text", "guide.offer.text");
+    text("guide-offer-open", "guide.offer.open");
+    text("guide-offer-dismiss", "guide.offer.dismiss");
+    guide.render();
     find("demo-exit").hidden=!demoRunning;
     text("facts", "real.title");
     text("teachers", "teachers.title");
@@ -838,6 +858,9 @@ export async function mountGame(root) {
   }
   listen("intro-next",()=>intro?.next());listen("intro-skip",()=>intro?.skip());
   listen("watch",watchIntro);
+  listen("guide-open", () => { menuOpen = false; render(); guide.open(find("menu")); });
+  listen("guide-offer-open", () => guide.open(find("start")));
+  listen("guide-offer-dismiss", () => { offerGuide = false; markGuideSeen(); render(); find("start").focus(); });
   listen("mission-menu",()=>{if(!demoRunning)save();menuOpen=false;find("work-screen").hidden=true;show("setup");});
   listen("demo-start",()=>{menuOpen=false;startMission(3);});
   listen("demo-exit",()=>{menuOpen=false;demoRunning=false;if(hasSave())continueMission();else show("setup");});
@@ -893,7 +916,7 @@ export async function mountGame(root) {
     if (lastTick != null && screen === "mission" && STATE?.status === "playing" && !portrait.matches) {
       const event = getActiveEvent();
       const previousPhase=STATE.phase;
-      if(find("work-screen").hidden&&find("intro-screen").hidden)tick(Math.min(250, now - lastTick));
+      if(find("work-screen").hidden&&find("intro-screen").hidden&&!guide.isOpen)tick(Math.min(250, now - lastTick));
       const current = getActiveEvent();
       if (event && current?.id !== event.id && event.remainingMs != null) setEventResponse(event, event.defaultChoice);
       if (current?.remainingMs != null) {
