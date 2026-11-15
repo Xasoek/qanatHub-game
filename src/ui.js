@@ -1,9 +1,9 @@
 // Role 2: game interface over the 3D outpost. The UI reads STATE and changes it only through the engine API.
 import { ART_CREDITS, createWorld, hasCapableGpu, missionSnapshot, renderBase, renderProfile } from "./art.js";
 import { CONFIG } from "./config.js";
-import { FACTS, SITES, loadSolarData } from "./data.js";
+import { FACTS, SITES, SOURCES, loadSolarData } from "./data.js";
 import {
-  STATE, allocate, endSol, getActiveEvent, getBlockedSystems, getEndReport, hasSave, load, newGame, on, resolveEvent, setSpeed,
+  STATE, allocate, dailySeed, endSol, getActiveEvent, getBlockedSystems, getEndReport, hasSave, load, newGame, on, resolveEvent, setSpeed,
   skipToDecision, tick, planTask, unplanTask, taskAvailable, simulationPreview, drawBattery, reviewSol, save, missionBoard, taskReason,
 } from "./engine.js";
 import { DAILY_TASKS, STORY_SOURCES, TRAINING_TASKS, playIntro, t } from "./text.js";
@@ -12,7 +12,7 @@ import { icon } from "./icons.js";
 
 const studyKeys = ["bip.study.sleep", "bip.study.muscle", "bip.study.bone"];
 const realKeys = ["real.storm", "real.flare", "real.lettuce", "real.radish", "real.potato", "real.cropTiming"];
-const terms = ["sol", "radiation", "dose", "flare", "flareClasses", "delay", "pressure"];
+const terms = ["sol", "radiation", "dose", "flare", "flareClasses", "panels", "lifeSupport", "delay", "pressure"];
 const actionKeys = { next: "game.next", end: "game.end", advance: "game.advance", restart: "end.retry" };
 // Which building Mark walks to for each system, and which system a building opens.
 const SYSTEM_OBJECT = { air: "air", farm: "farm", repair: "repair", heat: "air", comms: "comms", science: "science" };
@@ -121,6 +121,7 @@ export async function mountGame(root) {
       <div class="hidden-controls"><select id="site" aria-hidden="true" tabindex="-1"></select><select id="difficulty" aria-hidden="true" tabindex="-1"></select></div>
       <div class="setup-actions">
         <button id="start" type="button" class="primary"></button>
+        <button id="daily-mission" type="button"></button>
         <button id="continue" type="button" hidden></button>
       </div>
       <details class="presentation"><summary id="presentation-label"></summary><div class="acts" id="acts"></div></details>
@@ -259,6 +260,7 @@ export async function mountGame(root) {
       for (const flare of flareRecords?.values() ?? []) {
         paragraph(container, "real.flareRecord", { date: flare.beginTime.slice(0, 10), class: flare.classType }, flare.link ?? flare.messageURL);
       }
+      if (flareRecords?.size) paragraph(container, "real.flareAimed");
       if (STATE?.site && !flareRecords?.size) paragraph(container, "real.noFlares");
     } else if (screen === "teachers") {
       text("reading-title", "teachers.title");
@@ -270,6 +272,17 @@ export async function mountGame(root) {
       text("reading-title", "sources.title");
       for (const [key, url] of Object.entries(STORY_SOURCES)) paragraph(container, key, { site: copy("site." + (STATE?.site ?? CONFIG.defaults.site)) }, url);
       for (const term of terms) paragraph(container, "bip.term." + term);
+      // Every source the game relies on, checked by role 3 (src/data.js SOURCES).
+      container.append(node("h3", copy("sources.data")));
+      for (const source of SOURCES) {
+        const line = node("p");
+        const link = node("a", source.title);
+        link.href = source.url;
+        link.target = "_blank";
+        link.rel = "noopener";
+        line.append(link, " — " + [source.org, source.usedFor].filter(Boolean).join(" · "));
+        container.append(line);
+      }
       container.append(node("h3", copy("ui.credits")));
       for (const credit of ART_CREDITS) {
         const line = node("p");
@@ -339,11 +352,12 @@ export async function mountGame(root) {
     solarData={mode:state.solarMode,flares:state.flares,asOf:state.solarMode==="archive"?"2024-05-31":null};
     beginMission(state);
   }
-  async function startMission(presentation) {
+  async function startMission(presentation, daily = false) {
     if (starting) return;
     if(presentation&&!demoRunning&&screen==="mission")save();
     savedSolar=false;
-    if (dataChoice === "live") {
+    // Mission of the day always asks for today's flares and falls back to the archive honestly.
+    if (dataChoice === "live" || daily) {
       starting = true;
       find("start").disabled = true;
       text("start", "ui.loading");
@@ -353,7 +367,7 @@ export async function mountGame(root) {
     } else if (solarData.mode !== "archive") solarData = await loadSolarData();
     dataNotice = solarData.noticeKey;
     newGame({ site: find("site").value, difficulty: find("difficulty").value, solarData,
-      simulation: !presentation, seed: presentation?9:freshSeed(), ...(presentation ? { presentation: { act: presentation } } : {}) });
+      simulation: !presentation, seed: presentation?9:daily?dailySeed():freshSeed(), ...(presentation ? { presentation: { act: presentation } } : {}) });
     demoRunning=Boolean(presentation);
     beginMission(STATE);
   }
@@ -397,6 +411,7 @@ export async function mountGame(root) {
       find("event-body").textContent = copy("earth.staleStorm", { p: data.storm }) + " " + copy("earth.staleFlare", { p: data.flare });
     }
     if (type === "flare") find("event-body").append(" ", copy("bip.term.radiation"), " ", copy("bip.term.dose"), " ", copy("bip.term.flareClasses"));
+    if (type === "flare" && data.flare) find("event-body").append(" ", copy("real.flareAimed"));
     find("event").dataset.type = type;
     const list = find("choices");
     list.replaceChildren();
@@ -732,6 +747,7 @@ export async function mountGame(root) {
     text("difficulty-label", "story.difficulty");
     text("start", "story.start");
     text("continue", "ui.continue");
+    { const seed = String(dailySeed()); text("daily-mission", "ui.daily", { date: `${seed.slice(0, 4)}-${seed.slice(4, 6)}-${seed.slice(6)}` }); }
     text("presentation-label", "ui.presentation");
     text("data-label", "ui.dataSource");
     for (const card of find("data-cards").children) {
@@ -903,6 +919,7 @@ export async function mountGame(root) {
     show(returnScreen ?? "setup");
   });
   listen("start", () => startMission());
+  listen("daily-mission", () => startMission(null, true));
   listen("continue",continueMission);
   listen("restart", () => {find("work-screen").hidden=true;show("setup");});
   listen("next", () => { skipToDecision(); render(); });
