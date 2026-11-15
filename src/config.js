@@ -99,9 +99,10 @@ export const CONFIG = {
 
   // Presentation mode (TZ 3.2): start from an act with ready reserves at x4.
   // Acts 2 and 3 add a showcase storm and a strong flare right after the start.
-  // Act 3 reaches the ending in about 5 minutes. With careful play the simulator
-  // reaches the rescue in ~100% of act 3 demos on Gale and Arcadia, ~30% on Jezero
-  // (double damage), so demo on Gale. Act 2 plays like the normal game (~50%).
+  // Act 3 reaches the ending in about 5 minutes. With careful play and the NASA archive
+  // the simulator reaches the rescue in ~99% of act 3 demos on Gale and Arcadia, ~23% on
+  // Jezero (double damage), so demo on Gale. Act 2 is harder (~25%): it opens with a
+  // storm and an X flare and still has 20 sols to go.
   presentation: {
     speed: 4,
     stormAfter: 1, // sols after the start

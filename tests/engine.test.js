@@ -291,6 +291,24 @@ test("getBlockedSystems names the systems a decision closed until the next sol (
   assert.deepEqual(getBlockedSystems(), {}, "choices without blocks close nothing");
 });
 
+test("cleaning removes the dust from every panel and power returns the next sol", () => {
+  const dust = findEvent("dustyPanels");
+  assert.ok(dust);
+  STATE.panels.dusty = 2; // dust left by an earlier storm
+  resolveEvent(dust.id, "clean");
+  assert.equal(STATE.panels.dusty, 0, "the panels are clean");
+  assert.deepEqual(STATE.log.at(-1).cost, { panels: -2 });
+  allocate("air", 2);
+  nextDay();
+  assert.equal(STATE.panels.dusty, 0);
+  assert.equal(STATE.cubes, expectedCubes(), "no dusty-panel penalty");
+
+  const again = findEvent("dustyPanels");
+  const before = STATE.panels.dusty;
+  resolveEvent(again.id, "live");
+  assert.equal(STATE.panels.dusty, before + 1, "living with the dust adds a dusty panel");
+});
+
 test("working through a strong flare causes a dose consequence on the next sol", () => {
   for (let seed = 0; seed < 60; seed++) {
     const flare = playUntil("flare", { seed });
@@ -354,6 +372,41 @@ test("the engine saves every night, loads the same sol and clears the save after
   assert.equal(hasSave(), false);
 });
 
+test("a damaged, foreign or finished save never offers Continue (#9)", () => {
+  const storage = memoryStorage();
+  useStorage(storage);
+  newGame({ seed: 9 });
+  skipToDecision();
+  allocate("air", 2);
+  nextDay(); // the night autosaves sol 2
+  const good = JSON.parse(storage.getItem(CONFIG.saveKey));
+  assert.equal(hasSave(), true);
+
+  const broken = {
+    "not JSON": "{oops",
+    "empty object": "{}",
+    "another version": JSON.stringify({ ...good, v: CONFIG.saveVersion + 1 }),
+    "no state": JSON.stringify({ v: good.v, meta: good.meta }),
+    "finished mission": JSON.stringify({ ...good, state: { ...good.state, status: "rescued" } }),
+    "sol out of range": JSON.stringify({ ...good, state: { ...good.state, sol: 99 } }),
+    "unknown site": JSON.stringify({ ...good, state: { ...good.state, site: "olympus" } }),
+    "negative oxygen": JSON.stringify({ ...good, state: { ...good.state, oxygen: -1 } }),
+    "missing log": JSON.stringify({ ...good, state: { ...good.state, log: null } }),
+    "missing engine data": JSON.stringify({ ...good, meta: { ...good.meta, queue: undefined } }),
+  };
+  newGame({ seed: 1 });
+  for (const [name, raw] of Object.entries(broken)) {
+    storage.setItem(CONFIG.saveKey, raw);
+    assert.equal(hasSave(), false, `${name}: no Continue`);
+    assert.equal(load(), null, `${name}: load gives null`);
+    assert.equal(STATE.seed, 1, `${name}: the current game stays`);
+  }
+  assert.doesNotThrow(() => newGame({ seed: 2 }), "a new game still starts");
+  storage.setItem(CONFIG.saveKey, JSON.stringify(good));
+  assert.equal(hasSave(), true);
+  assert.equal(load().sol, good.state.sol);
+});
+
 test("saves fail quietly without storage", () => {
   newGame({ seed: 1 });
   assert.equal(save(), false);
@@ -384,13 +437,18 @@ test("a game over reports at most three decision chains, most expensive first", 
 
 // ---------- presentation ----------
 
-test("presentation act 3 starts on sol 21 at x4 with a storm and an X flare", () => {
-  const seen = [];
-  const off = on("event", (event) => seen.push(`${event.sol}:${event.type}:${event.data.flareClass ?? ""}`));
-  playMission({ seed: 2, presentation: { act: 3 } });
-  off();
-  assert.ok(seen.includes("22:storm:"));
-  assert.ok(seen.includes("23:flare:X"));
+test("presentation act 3 always shows a storm on sol 22 and an X flare on sol 23 (#8)", () => {
+  const noData = { mode: "archive", flares: [] };
+  for (const solarData of [undefined, noData]) { // NASA archive, then no flare data at all
+    for (let seed = 0; seed < 40; seed++) {
+      const seen = [];
+      const off = on("event", (event) => seen.push(`${event.sol}:${event.type}:${event.data.flareClass ?? ""}`));
+      playMission({ seed, site: "gale", presentation: { act: 3 }, ...(solarData && { solarData }) });
+      off();
+      assert.ok(seen.includes("22:storm:"), `seed ${seed}: storm on sol 22`);
+      assert.ok(seen.includes("23:flare:X"), `seed ${seed}: X flare on sol 23`);
+    }
+  }
   newGame({ presentation: { act: 3 } });
   assert.equal(STATE.sol, CONFIG.presentation.acts[3].sol);
   assert.equal(STATE.speed, CONFIG.presentation.speed);

@@ -46,7 +46,7 @@
 | `storm` | `keep`, `fold`. Единственное событие с `timeoutMs`: 10 с «Инженер», 15 с «Курсант» | `damage: [min, max]` |
 | `flare` | `shelter`, `work` | `flareClass: C\|M\|X`, `flare: {beginTime, classType, flrID, link}` из DONKI или `null`; `link` — адрес записи DONKI для экрана фактов, `null` у записи без ссылки, `damage` |
 | `scrubber` | `later`, `fix` | — |
-| `dustyPanels` | `live`, `clean` | — |
+| `dustyPanels` | `live`, `clean`. `live` добавляет одну запылённую панель, `clean` убирает пыль со всех панелей, включая пыль от прошлых бурь, но закрывает теплицу и ремонт до конца сола. Полная энергия возвращается со следующего сола | — |
 | `roverCrate` | `stay`, `food`, `oxygen` | — |
 | `coldNight` | `skip`, `heat` | — |
 | `cropChoice` | `radish`, `lettuce`, `potato` (сол 2) | — |

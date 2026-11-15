@@ -437,7 +437,11 @@ function applyChoice(event, choice) {
       break;
     case "dustyPanels":
       if (choice === "clean") {
-        block(["farm", "repair"], logEntry(key));
+        // Cleaning takes the whole sol and removes the dust from every panel,
+        // including dust left by earlier storms. Full power returns tomorrow.
+        const cleaned = STATE.panels.dusty;
+        STATE.panels.dusty = 0;
+        block(["farm", "repair"], logEntry(key, { panels: -cleaned }));
       } else {
         const panels = STATE.panels.total - downPanels() > 0 ? 1 : 0;
         STATE.panels.dusty += panels;
@@ -741,12 +745,34 @@ export function save() {
   }
 }
 
-export function hasSave() {
+const isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+const isReserve = (value) => Number.isFinite(value) && value >= 0;
+
+// Reads the save and checks that it can continue a mission. Null when it is
+// missing, damaged, from another version or already finished (#9).
+function readSave() {
   try {
-    return Boolean(storage()?.getItem(CONFIG.saveKey));
+    const raw = storage()?.getItem(CONFIG.saveKey);
+    if (!raw) return null;
+    const saved = JSON.parse(raw);
+    const state = saved?.state;
+    const valid = saved?.v === CONFIG.saveVersion && isObject(saved.meta) && isObject(state) &&
+      state.status === "playing" && PHASES.includes(state.phase) &&
+      Number.isInteger(state.sol) && state.sol >= 1 && state.sol <= CONFIG.missionSols &&
+      CONFIG.sites.includes(state.site) && Object.hasOwn(CONFIG.difficulties, state.difficulty) &&
+      ["oxygen", "food", "damage", "cubes"].every((key) => isReserve(state[key])) &&
+      isObject(state.alloc) && isObject(state.panels) && isObject(state.crop) &&
+      Array.isArray(state.pending) && Array.isArray(state.log) &&
+      Array.isArray(saved.meta.queue) && Array.isArray(saved.meta.blocked);
+    return valid ? saved : null;
   } catch {
-    return false;
+    return null;
   }
+}
+
+/** True only when load() would restore a mission, so Continue never fails. */
+export function hasSave() {
+  return readSave() !== null;
 }
 
 function clearSave() {
@@ -757,18 +783,13 @@ function clearSave() {
   }
 }
 
+/** Restores the saved mission and returns STATE, or null and keeps the current game. */
 export function load() {
-  try {
-    const raw = storage()?.getItem(CONFIG.saveKey);
-    if (!raw) return null;
-    const saved = JSON.parse(raw);
-    if (saved?.v !== CONFIG.saveVersion || !saved.state || !saved.meta) return null;
-    STATE = saved.state;
-    meta = saved.meta;
-    return STATE;
-  } catch {
-    return null;
-  }
+  const saved = readSave();
+  if (!saved) return null;
+  STATE = saved.state;
+  meta = saved.meta;
+  return STATE;
 }
 
 // ---------- End report ----------
