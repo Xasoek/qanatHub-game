@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {STATE,newGame,allocate,planTask,unplanTask,simulationPreview,drawBattery,skipToDecision,endSol,
   reviewSol,resolveEvent,getActiveEvent,save,load} from "../src/engine.js";
 import {CONFIG} from "../src/config.js";
+import {playCampaign} from "../tools/campaign-bot.js";
 function day(){
   skipToDecision();
   for(let e=getActiveEvent();e;e=getActiveEvent())resolveEvent(e.id,e.defaultChoice);
@@ -67,26 +68,17 @@ test("simulator saves and restores reserved plans and repairs",()=>{
   }finally{delete globalThis.localStorage;}
 });
 test("a complete 30-sol simulator mission requires the prepared surface return",()=>{
-  for(const leave of [true,false]){
-    newGame({simulation:true,seed:0,difficulty:"cadet"});
-    for(let d=0;d<CONFIG.missionSols&&STATE.status==="playing";d++){
-      skipToDecision();
-      for(let event=getActiveEvent();event;event=getActiveEvent()){
-        const choices={storm:"keep",flare:"shelter",scrubber:"fix",cropChoice:"radish"};
-        resolveEvent(event.id,choices[event.type]??event.defaultChoice);
-      }
-      allocate("air",2);
-      for(const task of ["inspect","seal","panel","radio","debris","beacon","route","lander",...(leave?["depart"]:[])])planTask(task);
-      if(STATE.food<7){planTask("near");planTask("far");}
-      allocate("farm",1);
-      if(STATE.cubes>=3)allocate("repair",2);
-      endSol();
-      if(STATE.status==="playing")reviewSol();
-    }
-    assert.equal(STATE.sol,30);
-    assert.equal(STATE.status,leave?"rescued":"emergencySleep");
-    assert(Object.values(STATE.sim.ready).every(Boolean));
+  // The campaign bot plays through the public API; see tests/campaign.test.js for the balance.
+  const rescued=playCampaign({seed:3,site:"gale",difficulty:"cadet",style:"sensible"});
+  assert.equal(rescued.status,"rescued");
+  assert.equal(rescued.sol,30);
+  assert(Object.values(rescued.simulation.ready).every(Boolean));
+  newGame({simulation:true,seed:3,difficulty:"cadet"});
+  for(let d=0;d<CONFIG.missionSols&&STATE.status==="playing";d++){
+    if(["evening","night"].includes(STATE.phase))reviewSol();
+    day();allocate("air",2);endSol();
   }
+  assert.notEqual(STATE.status,"rescued");
 });
 test('a resolved flare retains the exact NASA record for facts after reload',()=>{
   const record={flrID:'TEST-RECORD',beginTime:'2024-05-10T06:27Z',classType:'X3.9',link:'https://example.invalid/test'};

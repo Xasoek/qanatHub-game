@@ -89,3 +89,16 @@ Presentation entry saves the normal game; its own autosave and ending cannot ove
 A flare decision may add sourceFlare to its log entry, retaining the exact DONKI ID/link
 through save/load. Old saves without that optional field do not reconstruct historical records.
 Saved live datasets are labelled as snapshots, separate from a fresh live request.
+
+## Engineering campaign (simulator missions)
+Data lives in `CONFIG.simulation.tasks` (steps with `hours`, `cubes`, `parts`, `oxygen`, `mission`, `requires`, `repeat`)
+and `CONFIG.simulation.missions` (`priority: critical|optional`, `goal` step). New engine exports:
+`missionBoard()` returns `[{id, priority, status}]` with `LOCKED|AVAILABLE|IN_PROGRESS|COMPLETED`, computed only from
+completed steps; `taskReason(key)` returns `null` or why a step cannot be planned (`energy`, `parts`, `air`, `hours`,
+`needs:<step>`, `event`, ...). `STATE.sim` adds `done` (completed steps), `water` (sols of reserve) and `commsLevel`
+(0 none, 1 emergency beacon, 2 basic, 3 full). The legacy flags `inspected`, `sealBroken`, `radioBroken`, `debris`,
+`ready` stay in step with `done` because the 3D scene reads them. Earth answers each new link level with the events
+`earthContact`, `earthLink`, `earthPlan` (acknowledge only). `getEndReport().simulation` adds `water`, `missions`
+and `rating` (`exceptional|operational|damaged|limited`, rescues only). Older saves are filled in by
+`normalizeSimulation` on `load()`. The air and water rules live once in `src/simulator.js` (`airLoss`, `waterUse`),
+used by both the engine and `simulationPreview()`. Balance bots: `tools/campaign-bot.js`.

@@ -87,10 +87,10 @@ test("the guide numbers and labels come from the game rules and interface", () =
 });
 
 test("the guide does not describe features the game does not have", () => {
-  // The mission has oxygen, food, energy and a battery, but no water supply.
-  assert.doesNotMatch(guideText("en").join(" "), /\bwater\b/i);
+  // The engineering campaign added a water system (CONFIG.simulation.water), so the guide names it.
+  assert.match(guideText("en").join(" "), /\bwater\b/i);
   // \b does not see Cyrillic letters, so the Russian check spells out the word edges.
-  assert.doesNotMatch(guideText("ru").join(" "), /(^|[^а-яё])вод[аыуеой]?([^а-яё]|$)/i);
+  assert.match(guideText("ru").join(" "), /(^|[^а-яё])вод[аыуеой]?([^а-яё]|$)/i);
   assert.match("запас воды", /(^|[^а-яё])вод[аыуеой]?([^а-яё]|$)/i, "the Russian check really finds the word");
   for (const lang of ["en", "ru"]) {
     const text = guideText(lang).join(" ");
