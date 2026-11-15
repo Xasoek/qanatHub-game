@@ -10,7 +10,7 @@
     "build": "node tools/build.js",
     "build:check": "node tools/build.js --check",
     "test": "node --test && node tools/smoke.js && node tools/data-check.js",
-    "test:browser": "node --test tools/browser-smoke.js tools/ui-integration-smoke.js",
+    "test:browser": "node --test tools/browser-smoke.js tools/ui-integration-smoke.js tools/field-smoke.js",
     "sim": "node tools/sim.js"
   },
   "devDependencies": {

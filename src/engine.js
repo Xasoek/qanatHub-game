@@ -2,7 +2,7 @@
 // The UI changes the game only through the exported functions.
 import { makeSimulation, labor, planned, canTask, queueTask, cancelTask,
   startSimulationSol, settleSimulationDay, previewSimulation, airLoss, commsLevel, farmSteps, generationBonus, missionSummary, nightNeed,
-  normalizeSimulation, rescueRating, settleWater, taskBlocker } from "./simulator.js";
+  normalizeSimulation, rescueRating, settleWater, taskBlocker, availableHours, finishInteractiveTask, waterUse } from "./simulator.js";
 import { CONFIG } from "./config.js";
 
 export let STATE;
@@ -537,7 +537,7 @@ function settleDay() {
   if (STATE.sim) {
     const levelBefore = settleSimulationDay(STATE,meta.blocked.includes("repair"));
     queueEarthMessages(levelBefore, commsLevel(STATE));
-    for(const key of STATE.sim.lastPlan){
+    for(const key of STATE.sim.lastPlan.filter(k=>!STATE.sim.completedToday.includes(k))){
       const rule=CONFIG.simulation.tasks[key];
       logEntry("sim."+key,{cubes:rule.cubes,oxygen:rule.oxygen});
     }
@@ -709,7 +709,7 @@ export function allocate(system, delta) {
       !unlocked(system) || meta.blocked.includes(system)) return false;
   const next = STATE.alloc[system] + delta;
   if (next < 0 || next > CONFIG.maxAlloc[system] || STATE.cubes - delta < 0) return false;
-  if(STATE.sim && labor(STATE,{...STATE.alloc,[system]:next})+planned(STATE)>CONFIG.simulation.hours)return false;
+  if(STATE.sim && delta>0 && labor(STATE,{...STATE.alloc,[system]:next})+planned(STATE)>availableHours(STATE))return false;
   STATE.alloc[system] = next;
   STATE.cubes -= delta;
   return true;
@@ -740,6 +740,7 @@ export function missionBoard() {
 export function taskReason(key) {
   if (!STATE?.sim) return "unknown";
   if (meta.active) return "event";
+  if(meta.blocked.includes("repair")&&!['robot','rest'].includes(key))return "closed";
   return taskBlocker(STATE, key);
 }
 
@@ -750,11 +751,34 @@ export function planTask(key) {
   if(result)save();
   return result;
 }
+/** Hands-on jobs reserve normal costs, then require explicit completion. */
+export function fieldReadings(){
+  return {energy:computeCubes(),air:airLoss(STATE,STATE.alloc,[]).total,
+    water:STATE.sim?waterUse(STATE,farmSteps(STATE,STATE.alloc.farm),[]):0,dust:STATE.panels.dusty};
+}
+export function beginFieldTask(key){
+  if(!STATE?.sim || meta.active || STATE.phase!=="day" || STATE.status!=="playing")return false;
+  if(meta.blocked.includes("repair")&&key!=="robot"&&key!=="rest")return false;
+  if(STATE.sim.interactive?.[key] && STATE.sim.plan.includes(key))return true;
+  if(!queueTask(STATE,key))return false;
+  STATE.sim.interactive ??={};STATE.sim.interactive[key]=true;save();return true;
+}
+export function finishFieldTask(key){
+  if(!STATE?.sim || meta.active || STATE.phase!=="day" || STATE.status!=="playing" ||
+    (meta.blocked.includes("repair") && key!=="robot" && key!=="rest"))return false;
+  const before=finishInteractiveTask(STATE,key);
+  if(before==null)return false;
+  queueEarthMessages(before,commsLevel(STATE));
+  const rule=CONFIG.simulation.tasks[key];
+  logEntry("sim."+key,{cubes:rule.cubes,oxygen:rule.oxygen});
+  if(key==="far")block(["farm"],null);
+  save();return true;
+}
 export function unplanTask(key) {
   if(!STATE?.sim || meta.active || STATE.phase!=="day" || STATE.status!=="playing")return false;
   return cancelTask(STATE,key);
 }
-export function taskAvailable(key) {return !meta.active && canTask(STATE,key);}
+export function taskAvailable(key) {return taskReason(key)===null;}
 export function simulationPreview(){return previewSimulation(STATE);}
 export function drawBattery() {
   const sim=STATE?.sim;

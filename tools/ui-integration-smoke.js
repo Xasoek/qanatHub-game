@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {chromium}from'playwright';
-import {newGame,STATE,save}from'../src/engine.js';
+import {newGame,STATE,save,skipToDecision,planTask}from'../src/engine.js';
 import {NASA_ARCHIVE}from'../src/data.js';
 const url=new URL('../index.html',import.meta.url).href;
 const key='oneSolToRescue.save';
@@ -79,4 +79,24 @@ test('blocked controls use the engine reason after reload in EN and RU',async t=
   }
  }
  assert(await page.locator('#system-air [data-delta="1"]').isEnabled());
+}));
+
+
+test('campaign work-hour limit disables only unavailable allocations in the UI',async t=>withPage(t,async page=>{
+ let fixture;
+ globalThis.localStorage={setItem:(_,value)=>fixture=value,getItem:()=>fixture,removeItem:()=>{}};
+ try{
+  newGame({simulation:true,seed:0});skipToDecision();
+  for(const task of ['inspectArray','inspectAir','findLeak','inspect'])planTask(task);
+  STATE.fatigue=5;save();
+ }finally{delete globalThis.localStorage;}
+ await page.addInitScript(({key,fixture})=>localStorage.setItem(key,fixture),{key,fixture});
+ await page.goto(url);await page.locator('#continue').click();
+ assert(await page.locator('#system-farm [data-delta="1"]').isDisabled());
+ assert.match(await page.locator('#system-farm-reason').textContent(),/work hours/);
+ assert(await page.locator('#system-air [data-delta="1"]').isEnabled());
+ await page.locator('#work-open').click();
+ await page.getByRole('button',{name:/^Inspect the airlock/}).click();
+ await page.locator('#work-close').click();
+ assert(await page.locator('#system-farm [data-delta="1"]').isEnabled());
 }));
