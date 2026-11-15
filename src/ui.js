@@ -2,7 +2,7 @@ import { renderBase } from "./art.js";
 import { CONFIG } from "./config.js";
 import { loadSolarData } from "./data.js";
 import {
-  STATE, allocate, endSol, getActiveEvent, getEndReport, newGame, on, resolveEvent, skipToDecision, tick,
+  STATE, allocate, endSol, getActiveEvent, getBlockedSystems, getEndReport, newGame, on, resolveEvent, skipToDecision, tick,
 } from "./engine.js";
 import { DAILY_TASKS, STORY_SOURCES, TRAINING_TASKS, playIntro, t } from "./text.js";
 
@@ -287,15 +287,25 @@ export async function mountGame(root) {
   }
 
   function renderSystems(event, playing) {
+    const blockedSystems = getBlockedSystems();
     for (const system of CONFIG.systems) {
       const controls = find("system-" + system);
       controls.hidden = !playing || STATE.sol < CONFIG.unlockSol[system];
       const label = copy("story.systems." + system);
       controls.querySelector("span").textContent = label + " · " + STATE.alloc[system];
+      const blocked = Object.hasOwn(blockedSystems, system);
+      const choice = blockedSystems[system];
+      const reason = find(`system-${system}-reason`);
+      reason.textContent = blocked
+        ? copy(choice ? "story.blockedReason" : "story.blocked", { reason: choice && copy("log." + choice) })
+        : "";
+      reason.hidden = !blocked;
       for (const button of controls.querySelectorAll("button")) {
         const delta = Number(button.dataset.delta);
         button.setAttribute("aria-label", button.textContent + " " + label);
-        button.disabled = Boolean(event) || STATE.phase !== "day" ||
+        if (blocked) button.setAttribute("aria-describedby", reason.id);
+        else button.removeAttribute("aria-describedby");
+        button.disabled = blocked || Boolean(event) || STATE.phase !== "day" ||
           (delta > 0 ? STATE.cubes === 0 || STATE.alloc[system] >= CONFIG.maxAlloc[system] : STATE.alloc[system] === 0);
       }
     }
@@ -385,6 +395,10 @@ export async function mountGame(root) {
       button.addEventListener("click", () => { allocate(system, delta); renderMission(); });
       controls.append(button);
     }
+    const reason = node("small");
+    reason.id = `system-${system}-reason`;
+    reason.hidden = true;
+    controls.append(reason);
     find("systems").append(controls);
   }
 

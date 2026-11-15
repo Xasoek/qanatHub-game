@@ -93,6 +93,10 @@ nav {
 #systems span {
   display: block;
 }
+#systems small:not([hidden]) {
+  display: block;
+  margin-top: 0.25rem;
+}
 #systems button + button {
   margin-inline-start: 0.25rem;
 }
@@ -1321,6 +1325,9 @@ nav {
     if (!meta.active) return null;
     return { ...publicEvent(meta.active), remainingMs: meta.active.remainingMs };
   }
+  function getBlockedSystems() {
+    return Object.fromEntries(meta.blocked.map((system) => [system, STATE.log[meta.blockedBy[system]]?.choice ?? null]));
+  }
   function settleDay() {
     const siteRules = rules();
     const { alloc } = STATE;
@@ -1557,6 +1564,8 @@ nav {
     en: {
       story: {
         systems: { air: "Scrubber", farm: "Greenhouse", repair: "Repairs", heat: "Heating", comms: "Radio", science: "Science" },
+        blocked: "Unavailable this sol.",
+        blockedReason: "Unavailable this sol. Reason: {reason}",
         back: "Back",
         task: "Today’s task",
         done: "Task complete",
@@ -1823,6 +1832,8 @@ nav {
     ru: {
       story: {
         systems: { air: "Очиститель", farm: "Теплица", repair: "Ремонт", heat: "Обогрев", comms: "Связь", science: "Наука" },
+        blocked: "Недоступно до следующего сола.",
+        blockedReason: "Недоступно до следующего сола. Причина: {reason}",
         back: "Назад",
         task: "Задача сола",
         done: "Задача выполнена",
@@ -2445,15 +2456,23 @@ nav {
       container.append(list);
     }
     function renderSystems(event, playing) {
+      const blockedSystems = getBlockedSystems();
       for (const system of CONFIG.systems) {
         const controls = find("system-" + system);
         controls.hidden = !playing || STATE.sol < CONFIG.unlockSol[system];
         const label = copy("story.systems." + system);
         controls.querySelector("span").textContent = label + " · " + STATE.alloc[system];
+        const blocked = Object.hasOwn(blockedSystems, system);
+        const choice = blockedSystems[system];
+        const reason = find(`system-${system}-reason`);
+        reason.textContent = blocked ? copy(choice ? "story.blockedReason" : "story.blocked", { reason: choice && copy("log." + choice) }) : "";
+        reason.hidden = !blocked;
         for (const button of controls.querySelectorAll("button")) {
           const delta = Number(button.dataset.delta);
           button.setAttribute("aria-label", button.textContent + " " + label);
-          button.disabled = Boolean(event) || STATE.phase !== "day" || (delta > 0 ? STATE.cubes === 0 || STATE.alloc[system] >= CONFIG.maxAlloc[system] : STATE.alloc[system] === 0);
+          if (blocked) button.setAttribute("aria-describedby", reason.id);
+          else button.removeAttribute("aria-describedby");
+          button.disabled = blocked || Boolean(event) || STATE.phase !== "day" || (delta > 0 ? STATE.cubes === 0 || STATE.alloc[system] >= CONFIG.maxAlloc[system] : STATE.alloc[system] === 0);
         }
       }
     }
@@ -2543,6 +2562,10 @@ nav {
         });
         controls.append(button);
       }
+      const reason = node("small");
+      reason.id = `system-${system}-reason`;
+      reason.hidden = true;
+      controls.append(reason);
       find("systems").append(controls);
     }
     listen("language", () => {
