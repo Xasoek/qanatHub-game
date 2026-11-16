@@ -1,0 +1,10 @@
+node_modules/
+out/
+preview/
+assets-src/
+*.zip
+*.mp4
+public/models/*
+!public/models/NASA-Perseverance.glb
+!OneSol-Intro.mp4
+.DS_Store
